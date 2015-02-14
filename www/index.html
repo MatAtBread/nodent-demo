@@ -12,9 +12,13 @@ textarea {
   height:100%;
 }
 pre {
-  max-height: 10%;
+  max-height: 15%;
   border: 1px solid #888;
   overflow-x: scroll;
+}
+pre div:last-child {
+  background-color: #ddf;
+  color: #448;
 }
 </style>
 <script>
@@ -27,6 +31,7 @@ function log() {
   var line = document.createElement("div") ;
   line.innerText = Array.prototype.slice.call(arguments).join(",")+"\n" ; 
   l.appendChild(line) ;
+  line.scrollIntoView(false) ;
 }
 console.log = log ;
 
