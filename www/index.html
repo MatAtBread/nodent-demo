@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>Nodent ES7 to ES5 compiler</title>
+<style>
+span {
+  width:48%;
+  height:70%;
+  display: inline-block;
+}
+textarea {
+  width:100%;
+  height:100%;
+}
+pre {
+  max-height: 10%;
+  border: 1px solid #888;
+  overflow-x: scroll;
+}
+</style>
+<script>
+function $error(ex) {
+  alert("Unhandled error"+ex.toString()) ;
+}
+
+function log(msg) {
+  var l = document.getElementById("log") ;
+  l.innerText += msg+"\n" ;
+}
+console.log = log ;
+
+function compile() {
+  var src = document.getElementById("source").value ;
+  if (!src)
+    return ;
+  var xhr = new XMLHttpRequest() ;
+  xhr.open("POST",document.getElementById("promise").checked?"/promise":"/es7",true) ;
+  xhr.onreadystatechange = function(){
+    if (xhr.readyState==4) {
+      if (xhr.status!=200) {
+        log(xhr.status+": "+xhr.responseText);
+        return ;
+      }
+      try {
+  	var resp = JSON.parse(xhr.responseText) ;
+        document.getElementById("es5").value = resp.compiled ;
+        if (resp.message)
+          log(resp.message) ;
+      } catch (ex) {
+        log(ex.message) ;
+      }
+    }
+  };
+  xhr.send(src) ;
+}
+
+function execute() {
+  try {
+    (new Function(document.getElementById("es5").value))() ;
+  } catch (ex) {
+    log(ex.message) ;
+  }  
+}
+
+</script>
+</head>
+<body>
+<div>
+<h2>Nodent ES7 to ES5 compiler</h2>
+Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>.
+Fork me on <a href="https://github.com/MatAtBread/nodent">Github</a>.
+</div>
+<span>
+<textarea id="source">
+//ES7 code
+</textarea>
+<div><button onclick="compile()">Compile</button>
+<input type="checkbox" id="promise" checked="true">Use Promises</div>
+</span>
+<span>
+<textarea id="es5"></textarea>
+<div><button onclick="execute()">Run compiled JavaScript</button></div>
+</span>
+<pre id="log"></pre>
+</body>
+</html>
