@@ -22,9 +22,11 @@ function $error(ex) {
   alert("Unhandled error"+ex.toString()) ;
 }
 
-function log(msg) {
+function log() {
   var l = document.getElementById("log") ;
-  l.innerText += msg+"\n" ;
+  var line = document.createElement("div") ;
+  line.innerText = Array.prototype.slice.call(arguments).join(",")+"\n" ; 
+  l.appendChild(line) ;
 }
 console.log = log ;
 
@@ -74,7 +76,7 @@ Fork me on <a href="https://github.com/MatAtBread/nodent">Github</a>.
 //ES7 code
 </textarea>
 <div><button onclick="compile()">Compile</button>
-<input type="checkbox" id="promise" checked="true">Use Promises</div>
+<input type="checkbox" id="promise" checked>Use Promises</div>
 </span>
 <span>
 <textarea id="es5"></textarea>
