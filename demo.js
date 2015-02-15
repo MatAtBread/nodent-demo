@@ -24,7 +24,7 @@ function handle(req,res) {
     req.on('end',function(){
       try {
         var result = {} ;
-        result.compiled = nodent.compile(res.body,"source.js",2,{es7:true,promises:req.url=='/promise'}).code ;
+        result.compiled = nodent.compile(res.body,"source.js",3,{es7:true,promises:req.url=='/promise'}).code ;
         res.statusCode = 200 ;
         res.setHeader("Content-type","application/json") ;
         res.end(JSON.stringify(result)) ;
