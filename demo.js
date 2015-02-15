@@ -12,11 +12,7 @@ function handle(req,res) {
       res.statusCode = 200 ;
       res.setHeader("Content-type","text/html") ;
       fs.readFile('www/index.html',function(err,data){
-          var code = unescape(url[1] || "") + (req.body || "") ;
-          if (code) {
-            data = data.toString().replace("//ES7 code",code) ;
-	  }
-          res.end(data.toString()) ;
+        res.end(data.toString()) ;
       }) ;    
     }) ;
     break ;
