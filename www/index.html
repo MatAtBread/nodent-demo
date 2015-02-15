@@ -25,13 +25,13 @@ pre div:last-child {
 </style>
 <script>
 function $error(ex) {
-  alert("Unhandled error"+ex.toString()) ;
+  alert("Unhandled error: "+ex.toString()) ;
 }
 
 function log() {
   var l = document.getElementById("log") ;
   var line = document.createElement("div") ;
-  line.innerText = Array.prototype.slice.call(arguments).join(",")+"\n" ; 
+  line.innerText = line.textContent = Array.prototype.slice.call(arguments).join(",")+"\n" ; 
   l.appendChild(line) ;
   while (l.children.length>10)
     l.removeChild(l.children[0]) ;
