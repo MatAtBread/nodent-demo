@@ -75,8 +75,9 @@ function execute() {
 }
 
 window.onload = function() {
+  // Double decode as NPMJS makes a mess of URLs in links
   if (window.location.hash)
-    document.getElementById("source").value = decodeURIComponent(window.location.hash.substring(1)) ;	
+    document.getElementById("source").value = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))) ;	
 }
 
 </script>
