@@ -24,29 +24,30 @@ pre div:last-child {
 }
 </style>
 <script>
+var ui = {} ;
+
 function $error(ex) {
-  alert("Unhandled error"+ex.toString()) ;
+  alert("Unhandled error: "+ex.toString()) ;
 }
 
 function log() {
-  var l = document.getElementById("log") ;
   var line = document.createElement("div") ;
-  line.innerText = Array.prototype.slice.call(arguments).join(",")+"\n" ; 
-  l.appendChild(line) ;
-  while (l.children.length>10)
-    l.removeChild(l.children[0]) ;
+  line.innerText = line.textContent = Array.prototype.slice.call(arguments).join(",")+"\n" ; 
+  ui.log.appendChild(line) ;
+  while (ui.log.children.length>10)
+    ui.log.removeChild(ui.log.children[0]) ;
   line.scrollIntoView(false) ;
 }
 console.log = log ;
 
 function compile() {
-  var src = document.getElementById("source").value ;
+  var src = ui.source.value ;
   if (!src)
     return ;
   window.location.hash = encodeURIComponent(src) ;	
 
   var xhr = new XMLHttpRequest() ;
-  xhr.open("POST",document.getElementById("promise").checked?"/promise":"/es7",true) ;
+  xhr.open("POST",ui.promise.checked?"/promise":"/es7",true) ;
   xhr.onreadystatechange = function(){
     if (xhr.readyState==4) {
       if (xhr.status!=200) {
@@ -55,7 +56,7 @@ function compile() {
       }
       try {
   	var resp = JSON.parse(xhr.responseText) ;
-        document.getElementById("es5").value = resp.compiled ;
+        ui.es5.value = resp.compiled ;
         if (resp.message)
           log(resp.message) ;
       } catch (ex) {
@@ -68,16 +69,28 @@ function compile() {
 
 function execute() {
   try {
-    (new Function(document.getElementById("es5").value))() ;
+    (new Function(ui.es5.value))() ;
   } catch (ex) {
     log(ex.message) ;
   }  
 }
 
 window.onload = function() {
+  // UI elements
+  Array.prototype.forEach.call(document.getElementsByTagName("*"),function(e){ 
+    if (e.id) ui[e.id] = e ;
+  }) ;
+
   // Double decode as NPMJS makes a mess of URLs in links
   if (window.location.hash)
-    document.getElementById("source").value = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))) ;	
+    ui.source.value = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))) ;
+
+  try {
+    ui.promise.checked = (new Promise(function(){})) && true ;
+  } catch (ex) {
+    // No Promises
+    ui.promise.disabled = true ;     
+  }	
 }
 
 </script>
@@ -94,7 +107,7 @@ Fork me on <a href="https://github.com/MatAtBread/nodent">Github</a>.
 //ES7 code
 </textarea>
 <div><button onclick="compile()">Compile</button>
-<input type="checkbox" id="promise" checked>Use Promises</div>
+<input type="checkbox" id="promise">Use Promises</div>
 </span>
 <span>
 <textarea id="es5"></textarea>
