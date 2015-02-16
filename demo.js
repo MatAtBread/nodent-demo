@@ -17,6 +17,19 @@ function handle(req,res) {
     }) ;
     break ;
 
+  case '/js':
+  case '/js-promise':
+	  try {
+	      res.statusCode = 200 ;
+	      res.setHeader("Content-type","text/javascript") ;
+	      res.end(nodent.compile(decodeURIComponent(url[1]),"source.js",2,{es7:true,promises:req.url=='/js-promise'}).code) ;
+	  } catch(ex) {
+	      res.statusCode = 500 ;
+	      res.setHeader("Content-type","text/plain") ;
+	      res.end(ex.message) ;
+	  }
+	  break ;
+	  
   case '/es7':
   case '/promise':
     res.body = "" ;
@@ -24,7 +37,7 @@ function handle(req,res) {
     req.on('end',function(){
       try {
         var result = {} ;
-        result.compiled = nodent.compile(res.body,"source.js",3,{es7:true,promises:req.url=='/promise'}).code ;
+        result.compiled = nodent.compile(res.body,"source.js",2,{es7:true,promises:req.url=='/promise'}).code ;
         res.statusCode = 200 ;
         res.setHeader("Content-type","application/json") ;
         res.end(JSON.stringify(result)) ;
