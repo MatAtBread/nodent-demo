@@ -26,6 +26,18 @@ pre div:last-child {
 <script>
 var ui = {} ;
 
+Function.prototype.$asyncbind = function(self,catcher) {
+	var fn = this ;
+	fn.isAsync = true ;
+	return function(){
+		try {
+			return fn.apply(self,arguments);
+		} catch (ex) {
+			catcher(ex);
+		}
+	} ; 
+}
+
 function $error(ex) {
   alert("Unhandled error: "+ex.toString()) ;
 }
