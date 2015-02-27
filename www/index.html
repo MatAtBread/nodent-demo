@@ -29,11 +29,16 @@ var ui = {} ;
 Function.prototype.$asyncbind = function(self,catcher) {
 	var fn = this ;
 	fn.isAsync = true ;
-	return function(){
+	var catcher = $error ;
+	return function($return,$error){
 		try {
 			return fn.apply(self,arguments);
 		} catch (ex) {
-			catcher(ex);
+			try {
+				$error(ex);
+			} catch (ex) {
+				catcher(ex) ;
+			}
 		}
 	} ; 
 }
