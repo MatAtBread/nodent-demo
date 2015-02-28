@@ -2,135 +2,174 @@
 <head>
 <title>Nodent ES7 to ES5 compiler</title>
 <style>
-span {
-  width:48%;
-  height:70%;
-  display: inline-block;
+block {
+	width: 48%;
+	height: 70%;
+	display: inline-block;
 }
+
 textarea {
-  width:100%;
-  height:100%;
+	width: 100%;
+	height: 100%;
 }
+
 pre {
-  height: 15%;
-  position: relative;
-  bottom: 0;
-  border: 1px solid #888;
-  overflow-x: scroll;
+	height: 15%;
+	position: relative;
+	bottom: 0;
+	border: 1px solid #888;
+	overflow-x: scroll;
 }
+
 pre div:last-child {
-  background-color: #ddf;
-  color: #448;
+	background-color: #eef;
+	color: #337;
+}
+
+.options > * {
+    margin-right: 6%;
+    margin-top: .5em;
+}
+
+.errorlog {
+	background-color: #fee !important;
+	color: #733 !important;
 }
 </style>
 <script>
-var ui = {} ;
+	var ui = {};
 
-Function.prototype.$asyncbind = function(self,catcher) {
-	var fn = this ;
-	fn.isAsync = true ;
-	var catcher = $error ;
-	return function($return,$error){
-		try {
-			return fn.apply(self,arguments);
-		} catch (ex) {
+	Function.prototype.$asyncbind = function(self, catcher) {
+		var fn = this;
+		fn.isAsync = true;
+		var catcher = $error;
+		return function($return, $error) {
 			try {
-				$error(ex);
+				return fn.call(self, $return, $error);
 			} catch (ex) {
-				catcher(ex) ;
+				try {
+					$error(ex);
+				} catch (ex) {
+					catcher(ex);
+				}
 			}
+		};
+	}
+
+	function log() {
+		var line = document.createElement("div");
+		line.innerText = line.textContent = Array.prototype.slice.call(arguments).join(",")+ "\n";
+		ui.log.appendChild(line);
+		while (ui.log.children.length > 32)
+			ui.log.removeChild(ui.log.children[0]);
+		line.scrollIntoView(false);
+		return line ;
+	}
+	$error = function() {
+		log.apply(this,arguments).className = "errorlog" ;
+	}
+
+	console.log = log;
+	console.error = $error ;
+
+	function http(method,url,data) {
+		return function(resolve,reject) {
+		    var xhr = new XMLHttpRequest() ;
+		    xhr.onload = function(){
+		    	try {
+			        if (xhr.status>=400)
+			        	throw new Error(xhr.statusText) ;
+			        return resolve(JSON.parse(xhr.responseText)) ;
+		    	} catch (ex) {
+		    		return reject(ex) ;
+		    	}
+		    }
+		    xhr.open(method,url,true) ;
+		    xhr.send(data) ;
 		}
-	} ; 
-}
+	}
+	
+	function compile() {
+		var src = ui.source.value;
+		if (!src)
+			return;
+		window.location.hash = encodeURIComponent(src);
 
-function $error(ex) {
-  alert("Unhandled error: "+ex.toString()) ;
-}
+		http("POST", ui.promise.checked ? "/promise" : "/es7", src)(function(resp){
+			ui.es5.value = resp.compiled;
+			if (resp.message)
+				console.error(resp.message) ;
+		},console.error) ;
+	}
 
-function log() {
-  var line = document.createElement("div") ;
-  line.innerText = line.textContent = Array.prototype.slice.call(arguments).join(",")+"\n" ; 
-  ui.log.appendChild(line) ;
-  while (ui.log.children.length>10)
-    ui.log.removeChild(ui.log.children[0]) ;
-  line.scrollIntoView(false) ;
-}
-console.log = log ;
+	function execute() {
+		try {
+			(new Function(ui.es5.value))();
+		} catch (ex) {
+			log(ex.message);
+		}
+	}
 
-function compile() {
-  var src = ui.source.value ;
-  if (!src)
-    return ;
-  window.location.hash = encodeURIComponent(src) ;	
+	function loadExample() {
+		var ref = ui.examples[ui.examples.selectedIndex].value ;
+		if (ref) {
+			http("GET",ref)(function(code){
+				ui.source.value = code ;
+			}) ;
+		}
+	}
+	
+	window.onload = function() {
+		// UI elements
+		Array.prototype.forEach.call(document.getElementsByTagName("*"),
+				function(e) {
+					if (e.id)
+						ui[e.id] = e;
+				});
 
-  var xhr = new XMLHttpRequest() ;
-  xhr.open("POST",ui.promise.checked?"/promise":"/es7",true) ;
-  xhr.onreadystatechange = function(){
-    if (xhr.readyState==4) {
-      if (xhr.status!=200) {
-        log(xhr.status+": "+xhr.responseText);
-        return ;
-      }
-      try {
-  	var resp = JSON.parse(xhr.responseText) ;
-        ui.es5.value = resp.compiled ;
-        if (resp.message)
-          log(resp.message) ;
-      } catch (ex) {
-        log(ex.message) ;
-      }
-    }
-  };
-  xhr.send(src) ;
-}
+		// Double decode as NPMJS makes a mess of URLs in links
+		if (window.location.hash)
+			ui.source.value = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1)));
 
-function execute() {
-  try {
-    (new Function(ui.es5.value))() ;
-  } catch (ex) {
-    log(ex.message) ;
-  }  
-}
-
-window.onload = function() {
-  // UI elements
-  Array.prototype.forEach.call(document.getElementsByTagName("*"),function(e){ 
-    if (e.id) ui[e.id] = e ;
-  }) ;
-
-  // Double decode as NPMJS makes a mess of URLs in links
-  if (window.location.hash)
-    ui.source.value = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))) ;
-
-  try {
-    ui.promise.checked = (new Promise(function(){})) && true ;
-  } catch (ex) {
-    // No Promises
-    ui.promise.disabled = true ;     
-  }	
-}
-
+		try {
+			ui.promise.checked = (new Promise(function() {})) && true;
+		} catch (ex) {
+			// No Promises
+			ui.promise.disabled = true;
+		}
+		
+		http("get","/examples")(function(examples){
+        	examples.forEach(function(fn){
+        		var option = document.createElement("option") ;
+        		option.value = fn ;
+        		option.innerText = fn.split("/").pop() ; 
+        		ui.examples.appendChild(option) ;
+        	}) ; 
+		},console.error) ;
+	}
 </script>
 </head>
 <body>
-<h2>Nodent ES7 to ES5 compiler</h2>
-Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>.
-Fork me on <a href="https://github.com/MatAtBread/nodent">Github</a>.
-</div>
+	<h2>Nodent ES7 to ES5 compiler</h2>
+	<div>
+	Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>. 
+	Fork me on <a href="https://github.com/MatAtBread/nodent">Github</a>.
+	</div>
 
-<div>
-<span>
-<textarea id="source">
-//ES7 code
-</textarea>
-<div><button onclick="compile()">Compile</button>
-<input type="checkbox" id="promise">Use Promises</div>
-</span>
-<span>
-<textarea id="es5"></textarea>
-<div><button onclick="execute()">Run compiled JavaScript</button></div>
-</span>
-<pre id="log"></pre>
-</div>
+	<div>
+		<block><textarea id="source">//ES7 code</textarea>
+			<div class="options">
+				<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
+				<span><input type="checkbox" id="promise">Use Promises</span>
+				<button onclick="compile()">Compile</button>
+			</div>
+		</block> 
+		<block><textarea id="es5"></textarea>
+			<div class="options">
+				<button onclick="execute()">Run compiled JavaScript</button>
+			</div>
+		</block>
+		<pre id="log"></pre>
+	</div>
 </body>
 </html>
