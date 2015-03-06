@@ -9,10 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-<<<<<<< HEAD
     "nodent": "^1.0.32"
-=======
-    "nodent": "^1.0.27"
->>>>>>> 056fce89d299f5af551fa05ea33549b10cdb477d
   }
 }
