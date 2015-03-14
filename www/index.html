@@ -40,22 +40,19 @@ pre div:last-child {
 <script>
 	var ui = {};
 
-	Function.prototype.$asyncbind = function(self, catcher) {
-		var fn = this;
-		fn.isAsync = true;
-		var catcher = $error;
-		return function($return, $error) {
+	Function.prototype.$asyncbind = function thenTryCatch(self,catcher) {
+		var fn = this ;
+		fn.isAsync = true ;
+		var thenable = function(result,error){
 			try {
-				return fn.call(self, $return, $error);
+				return fn.call(self,result,error);
 			} catch (ex) {
-				try {
-					$error(ex);
-				} catch (ex) {
-					catcher(ex);
-				}
+				return catcher.call(self,ex);
 			}
-		};
-	}
+		} ; 
+		thenable.then = thenable ;
+		return thenable ;
+	};
 
 	function log() {
 		var line = document.createElement("div");
