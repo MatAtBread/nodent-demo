@@ -27,12 +27,18 @@ function handle(req,res) {
 
 	case '/es7':
 	case '/promise':
+	case '/generators':
+		var options = {
+			es7:true,
+			generators:req.url=='/generators',
+			promises:req.url=='/promise'
+		} ;
 		res.body = "" ;
 		req.on('data',function(data){ res.body += data.toString() }) ;
 		req.on('end',function(){
 			try {
 				var result = {} ;
-				result.compiled = nodent.compile(res.body,"source.js",2,{es7:true,promises:req.url=='/promise'}).code ;
+				result.compiled = nodent.compile(res.body,"source.js",2,options).code ;
 				res.statusCode = 200 ;
 				res.setHeader("Content-type","application/json") ;
 				res.end(JSON.stringify(result)) ;

@@ -37,9 +37,16 @@ pre div:last-child {
 	color: #733 !important;
 }
 </style>
+<script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
 <script>
 	var ui = {};
 
+	function breathe() {
+		return function($return,$error){
+			setTimeout($return,0);
+		}.$asyncbind(this,$error) ;	
+	}
+	
 	Function.prototype.$asyncbind = function thenTryCatch(self,catcher) {
 		var fn = this ;
 		fn.isAsync = true ;
@@ -53,6 +60,37 @@ pre div:last-child {
 		thenable.then = thenable ;
 		return thenable ;
 	};
+	Function.prototype.$asyncspawn = function(promiseProvider) {
+		var genF = this ;
+	    return new promiseProvider(function(resolve, reject) {
+	        var gen = genF();
+	        function step(nextF) {
+	            var next;
+	            try {
+	                next = nextF();
+	            } catch(e) {
+	                reject(e); 
+	                return;
+	            }
+	            if(next.done) {
+	                resolve(next.value);
+	                return;
+	            } 
+
+	            if (next.value.then) {
+		            next.value.then(function(v) {
+		                step(function() { return gen.next(v); });      
+		            }, function(e) {
+		                step(function() { return gen.throw(e); });
+		            });
+	            } else {
+	            	step(function() { return gen.next(next.value); })
+	            }
+	        }
+	        step(function() { return gen.next(undefined); });
+	    });
+	}
+
 
 	function log() {
 		var line = document.createElement("div");
@@ -93,7 +131,8 @@ pre div:last-child {
 			return;
 		window.location.hash = encodeURIComponent(src);
 
-		http("POST", ui.promise.checked ? "/promise" : "/es7", src)(function(resp){
+		var ref = ui.impl[ui.impl.selectedIndex].value ;
+		http("POST", ref, src)(function(resp){
 			ui.es5.value = resp.compiled;
 			if (resp.message)
 				console.error(resp.message) ;
@@ -130,12 +169,20 @@ pre div:last-child {
 			ui.source.value = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1)));
 
 		try {
-			ui.promise.checked = (new Promise(function() {})) && true;
-		} catch (ex) {
-			// No Promises
-			ui.promise.disabled = true;
-		}
-		
+			var temp = (new Promise(function() {})) && true;
+    		var option = document.createElement("option") ;
+    		option.value = "/promise" ;
+    		option.innerText = "Use Promises" ; 
+    		option.selected = true ;
+    		ui.impl.appendChild(option) ;
+
+    		temp = eval("function *gen(){}") ;
+        	option = document.createElement("option") ;
+        	option.value = "/generators" ;
+        	option.innerText = "Use Promises/Generators" ; 
+        	ui.impl.appendChild(option) ;
+    	} catch (ex) { }
+
 		http("get","/examples")(function(examples){
         	examples.forEach(function(fn){
         		var option = document.createElement("option") ;
@@ -158,7 +205,7 @@ pre div:last-child {
 		<block><textarea id="source">//ES7 code</textarea>
 			<div class="options">
 				<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
-				<span><input type="checkbox" id="promise">Use Promises</span>
+				<select id="impl" onchange="compile()"><option selected value="/es7">Pure ES5</option></select>
 				<button onclick="compile()">Compile</button>
 			</div>
 		</block> 

@@ -17,6 +17,7 @@ async function remote(w) {
 	return await httpGet("/echo?"+w);
 }
 
+/* This doesn't work in Generator mode as 'await' is not inside an 'async' function */
 try {
 	var w = "The quick brown fox jumps thoughtlessly over the lazy dog".split(" ") ;
 	/* Serial loop */
@@ -26,7 +27,9 @@ try {
 	console.error("OOPS!",ex) ;
 }
 
-/* Parallel loop */
+/* Parallel loop. NB: This doesn't work in Generator mode as the executing function
+ * (within the forEach) cannot yield as it is synchronous */
 w.forEach(function(e){
 	log("each",await remote(e));
 }) ;
+
