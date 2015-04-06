@@ -1,6 +1,7 @@
-var nodent = require('nodent')() ;
+var nodent = require('nodent')({log:function(){ compileLog.push(arguments) }}) ;
 var http = require('http') ;
 var fs = require('fs') ;
+var compileLog ;
 
 function sendError(req,res){
 	res.statusCode = 404 ;
@@ -38,14 +39,19 @@ function handle(req,res) {
 		req.on('end',function(){
 			try {
 				var result = {} ;
+				compileLog = [] ;
+				var pr = nodent.parse(res.body,"source.js",3,options);
+				nodent.prettyPrint(pr,3,options) ;
+				result.pretty = pr.code ;
 				result.compiled = nodent.compile(res.body,"source.js",2,options).code ;
+				
 				res.statusCode = 200 ;
 				res.setHeader("Content-type","application/json") ;
 				res.end(JSON.stringify(result)) ;
 			} catch (ex) {
 				res.statusCode = 500 ;
 				res.setHeader("Content-type","text/plain") ;
-				res.end(ex.message) ;
+				res.end(ex.message+"\n"+compileLog.join("\n")) ;
 			}
 		}) ;
 		break ;
@@ -86,3 +92,4 @@ function handle(req,res) {
 } ;
 
 http.createServer(handle).listen(8880) ;
+console.log("Serving on port 8880");

@@ -11,7 +11,8 @@ block {
 textarea {
 	width: 100%;
 	height: 100%;
-	tab-size:2;
+	-moz-tab-size: 4;
+	tab-size: 4;
 }
 
 pre {
@@ -27,9 +28,9 @@ pre div:last-child {
 	color: #337;
 }
 
-.options > * {
-    margin-right: 6%;
-    margin-top: .5em;
+.options>* {
+	margin-right: 6%;
+	margin-top: .5em;
 }
 
 .errorlog {
@@ -60,41 +61,46 @@ pre div:last-child {
 		thenable.then = thenable ;
 		return thenable ;
 	};
-	Function.prototype.$asyncspawn = function(promiseProvider) {
+	
+	Function.prototype.$asyncspawn = function(promiseProvider,self) {
 		var genF = this ;
 	    return new promiseProvider(function(resolve, reject) {
-	        var gen = genF();
-	        function step(nextF) {
+	        var gen = genF.call(self, resolve, reject);
+	        function step(fn,arg) {
 	            var next;
 	            try {
-	                next = nextF();
-	            } catch(e) {
-	                reject(e); 
-	                return;
-	            }
-	            if(next.done) {
-	                resolve(next.value);
-	                return;
-	            } 
+	                next = fn.call(gen,arg);
+		            if(next.done) {
+		            	if (next.value !== resolve) {
+			            	resolve && resolve(next.value);
+			            	resolve = null ;
+		            	}
+		                return;
+		            } 
 
-	            if (next.value.then) {
-		            next.value.then(function(v) {
-		                step(function() { return gen.next(v); });      
-		            }, function(e) {
-		                step(function() { return gen.throw(e); });
-		            });
-	            } else {
-	            	step(function() { return gen.next(next.value); })
+		            if (next.value.then) {
+			            next.value.then(function(v) {
+			                step(gen.next,v); 
+			            }, function(e) {
+			                step(gen.throw,e); 
+			            });
+		            } else {
+		            	step(gen.next,next.value); 
+		            }
+	            } catch(e) {
+	            	reject && reject(e);
+	            	reject = null ;
+	                return;
 	            }
 	        }
-	        step(function() { return gen.next(undefined); });
+	        step(gen.next); 
 	    });
 	}
 
 
 	function log() {
 		var line = document.createElement("div");
-		line.innerText = line.textContent = Array.prototype.slice.call(arguments).join(",")+ "\n";
+		line.textContent = Array.prototype.slice.call(arguments).join(",")+ "\n";
 		ui.log.appendChild(line);
 		while (ui.log.children.length > 32)
 			ui.log.removeChild(ui.log.children[0]);
@@ -114,7 +120,7 @@ pre div:last-child {
 		    xhr.onload = function(){
 		    	try {
 			        if (xhr.status>=400)
-			        	throw new Error(xhr.statusText) ;
+			        	throw new Error(xhr.responseText) ;
 			        return resolve(JSON.parse(xhr.responseText)) ;
 		    	} catch (ex) {
 		    		return reject(ex) ;
@@ -133,6 +139,7 @@ pre div:last-child {
 
 		var ref = ui.impl[ui.impl.selectedIndex].value ;
 		http("POST", ref, src)(function(resp){
+			ui.source.value = resp.pretty;
 			ui.es5.value = resp.compiled;
 			if (resp.message)
 				console.error(resp.message) ;
@@ -172,14 +179,14 @@ pre div:last-child {
 			var temp = (new Promise(function() {})) && true;
     		var option = document.createElement("option") ;
     		option.value = "/promise" ;
-    		option.innerText = "Use Promises" ; 
+    		option.textContent = "Use Promises" ; 
     		option.selected = true ;
     		ui.impl.appendChild(option) ;
 
     		temp = eval("function *gen(){}") ;
         	option = document.createElement("option") ;
         	option.value = "/generators" ;
-        	option.innerText = "Use Promises/Generators" ; 
+        	option.textContent = "Use Promises/Generators" ; 
         	ui.impl.appendChild(option) ;
     	} catch (ex) { }
 
@@ -187,7 +194,7 @@ pre div:last-child {
         	examples.forEach(function(fn){
         		var option = document.createElement("option") ;
         		option.value = fn ;
-        		option.innerText = fn.split("/").pop() ; 
+        		option.textContent = fn.split("/").pop() ; 
         		ui.examples.appendChild(option) ;
         	}) ; 
 		},console.error) ;
@@ -197,22 +204,22 @@ pre div:last-child {
 <body>
 	<h2>Nodent ES7 to ES5 compiler</h2>
 	<div>
-	Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>. 
-	Fork me on <a href="https://github.com/MatAtBread/nodent">Github</a>.
+		Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>.
+		Fork me on <a href="https://github.com/MatAtBread/nodent">Github</a>.
 	</div>
 
 	<div>
-		<block><textarea id="source">//ES7 code</textarea>
-			<div class="options">
-				<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
-				<select id="impl" onchange="compile()"><option selected value="/es7">Pure ES5</option></select>
-				<button onclick="compile()">Compile</button>
-			</div>
-		</block> 
-		<block><textarea id="es5"></textarea>
-			<div class="options">
-				<button onclick="execute()">Run compiled JavaScript</button>
-			</div>
+		<block> <textarea id="source">//ES7 code</textarea>
+		<div class="options">
+			<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
+			<select id="impl" onchange="compile()"><option selected value="/es7">Pure ES5</option></select>
+			<button onclick="compile()">Compile</button>
+		</div>
+		</block>
+		<block> <textarea id="es5"></textarea>
+		<div class="options">
+			<button onclick="execute()">Run compiled JavaScript</button>
+		</div>
 		</block>
 		<pre id="log"></pre>
 	</div>
