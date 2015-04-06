@@ -20,7 +20,7 @@ async function test() {
 async function run() {
     var t = Date.now();
     await test();
-    log(Date.now() - t);
+    return Date.now() - t;
 };
 
 /* Run the test, in a Generator friendly way from non-async code. */
