@@ -49,18 +49,16 @@ pre div:last-child {
 	}
 	
 	Function.prototype.$asyncbind = function thenTryCatch(self,catcher) {
-		var fn = this ;
-		fn.isAsync = true ;
+		var resolver = this ;
 		var thenable = function(result,error){
 			try {
-				return fn.call(self,result,error);
+				return resolver.call(self,result,error);
 			} catch (ex) {
-				return catcher.call(self,ex);
+				return (error||catcher).call(self,ex);
 			}
 		} ; 
-		thenable.then = thenable ;
-		return thenable ;
-	};
+		return thenable.then = thenable ;
+	}
 	
 	Function.prototype.$asyncspawn = function(promiseProvider,self) {
 		var genF = this ;
