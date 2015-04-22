@@ -22,7 +22,10 @@ function handle(req,res) {
 		res.statusCode = 200 ;
 		res.setHeader("Content-type","text/html") ;
 		fs.readFile('www/index.html',function(err,data){
-			res.end(data.toString()) ;
+			res.end(data.toString().
+					replace("<@$asyncbind@>",nodent.$asyncbind.toString()).
+					replace("<@$asyncspawn@>",nodent.spawnGenerator.toString())
+					) ;
 		}) ;    
 		break ;
 
