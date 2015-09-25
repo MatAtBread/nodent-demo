@@ -24,7 +24,7 @@ function handle(req,res) {
 		fs.readFile('www/index.html',function(err,data){
 			res.end(data.toString().
 					replace("<@$asyncbind@>",nodent.$asyncbind.toString()).
-					replace("<@$asyncspawn@>",nodent.spawnGenerator.toString())
+					replace("<@$asyncspawn@>",nodent.$asyncspawn.toString())
 					) ;
 		}) ;    
 		break ;
