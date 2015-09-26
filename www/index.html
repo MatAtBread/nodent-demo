@@ -44,10 +44,12 @@ pre div:last-child {
 
 	function breathe() {
 		return function($return,$error){
-			setTimeout($return,0);
-		}.$asyncbind(this,$error) ;	
+			setTimeout(function(){
+				return $return(0)
+			},0);
+		}.$asyncbind(this) ;
 	}
-	
+
 	Function.prototype.$asyncbind = <@$asyncbind@>;
 	Function.prototype.$asyncspawn = <@$asyncspawn@>;
 
@@ -83,7 +85,7 @@ pre div:last-child {
 		    xhr.send(data) ;
 		}
 	}
-	
+
 	function compile() {
 		var src = ui.source.value;
 		if (!src)
@@ -115,7 +117,7 @@ pre div:last-child {
 			}) ;
 		}
 	}
-	
+
 	window.onload = function() {
 		// UI elements
 		Array.prototype.forEach.call(document.getElementsByTagName("*"),
@@ -132,14 +134,14 @@ pre div:last-child {
 			var temp = (new Promise(function() {})) && true;
     		var option = document.createElement("option") ;
     		option.value = "/promise" ;
-    		option.textContent = "Use Promises" ; 
+    		option.textContent = "Use Promises" ;
     		option.selected = true ;
     		ui.impl.appendChild(option) ;
 
     		temp = eval("function *gen(){}") ;
         	option = document.createElement("option") ;
         	option.value = "/generators" ;
-        	option.textContent = "Use Promises/Generators" ; 
+        	option.textContent = "Use Promises/Generators" ;
         	ui.impl.appendChild(option) ;
     	} catch (ex) { }
 
@@ -147,9 +149,9 @@ pre div:last-child {
         	examples.forEach(function(fn){
         		var option = document.createElement("option") ;
         		option.value = fn ;
-        		option.textContent = fn.split("/").pop() ; 
+        		option.textContent = fn.split("/").pop() ;
         		ui.examples.appendChild(option) ;
-        	}) ; 
+        	}) ;
 		},console.error) ;
 	}
 </script>
