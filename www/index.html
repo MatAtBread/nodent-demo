@@ -38,13 +38,29 @@ pre div:last-child {
 	color: #733 !important;
 }
 
+.banner {
+		position: fixed;
+		right: -1.5em;
+		top: 2.5em;
+		transform: rotate(45deg);
+		width: 10em;
+		z-index: 2;
+		font-size: 0.9em;
+		text-align: center;
+		background-color: white;
+		border: 1px solid #ccc;
+		border-radius: 0.5em;
+		padding: 0.5em;
+}
+
 #es5,#source {
 	width:100%;
 	height: 100%;
+	border: 1px solid #ccc;
 }
 
 </style>
-<script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
+<script src="http://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
 <script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="source-map.js"></script>
 <script>
@@ -70,6 +86,10 @@ pre div:last-child {
 		line.scrollIntoView(false);
 		return line ;
 	}
+	function clearLog() {
+			ui.log.innerHTML = "" ;
+	}
+
 	$error = function() {
 		log.apply(this,arguments).className = "errorlog" ;
 	}
@@ -110,11 +130,25 @@ pre div:last-child {
 		},console.error) ;
 	}
 
+	function pretty() {
+		var src = source.value;
+		if (!src)
+			return;
+		window.location.hash = encodeURIComponent(src);
+
+		var ref = ui.impl[ui.impl.selectedIndex].value ;
+		http("POST", ref, src)(function(resp){
+			source.value = resp.pretty;
+			if (resp.message)
+				console.error(resp.message) ;
+		},console.error) ;
+	}
+
 	function execute() {
 		try {
 			(new Function(es5.value))();
 		} catch (ex) {
-			log(ex.message);
+			$error(ex);
 		}
 	}
 
@@ -167,23 +201,29 @@ pre div:last-child {
 </head>
 <body>
 	<h2>Nodent ES7 to ES5 compiler</h2>
-	<div>
+	<div class="banner">
 		Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>.
 		Fork me on <a href="https://github.com/MatAtBread/nodent">Github</a>.
 	</div>
 
 	<div>
-		<block> <div id="source">//ES7 code</div>
-		<div class="options">
-			<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
-			<select id="impl" onchange="compile()"><option selected value="/es7">Pure ES5</option></select>
-			<button onclick="compile()">Compile</button>
-		</div>
+		<block>
+			<div>ES7 source</div>
+			<div id="source">//ES7 code</div>
+			<div class="options">
+				<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
+				<select id="impl" onchange="compile()"><option selected value="/es7">Pure ES5</option></select>
+				<button onclick="pretty()">Pretty</button>
+				<button onclick="compile()">Compile</button>
+			</div>
 		</block>
-		<block> <div id="es5"></div>
-		<div class="options">
-			<button onclick="execute()">Run compiled JavaScript</button>
-		</div>
+		<block>
+			<div>Compiled JS</div>
+			<div id="es5"></div>
+			<div class="options">
+				<button onclick="execute()">Run compiled JavaScript</button>
+				<button onclick="clearLog()">Clear log</button>
+			</div>
 		</block>
 		<pre id="log"></pre>
 	</div>
@@ -211,8 +251,10 @@ function syncOutput() {
 	if (sm && source.$isFocused) {
 		var c = source.selection.getCursor();
 		var g = sm.generatedPositionFor({source:'source.js',line:c.row+1,column:c.column}) ;
-		if (g.line)
+		if (g.line){
+			es5.selection.clearSelection() ;
 			es5.selection.moveCursorTo(g.line-1,g.column) ;
+		}
 	}
 }
 
@@ -220,19 +262,15 @@ function syncSource() {
 	if (sm  && es5.$isFocused) {
 		var c = es5.selection.getCursor();
 		var g = sm.originalPositionFor({line:c.row+1,column:c.column}) ;
-		if (g.line)
+		if (g.line) {
+			source.selection.clearSelection() ;
 			source.selection.moveCursorTo(g.line-1,g.column) ;
+		}
 	}
 }
 
-source.getSession().selection.on('changeCursor',function(evt){
-	syncOutput() ;
-//	compile() ;
-});
-
+source.getSession().selection.on('changeCursor',syncOutput);
 es5.getSession().selection.on('changeCursor',syncSource);
-
 es5.getSession().setMode("ace/mode/javascript");
-//source.getSession().setMode("ace/mode/javascript");
 </script>
 </html>

@@ -1,3 +1,4 @@
+/* Async http GET */
 async function httpGet(url) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
@@ -20,24 +21,30 @@ async function remote(w) {
 
 var w = "The quick brown fox jumps thoughtlessly over the lazy dog".split(" ");
 
+/* Serial loop */
 async function test() {
-    /* Serial loop */
     try {
         for (var i = 0; i < w.length; i++) {
-            log("for", await remote(w[i]));
+            log("serial", await remote(w[i]));
         }
     } catch (ex) {
         console.error("OOPS!", ex);
+        return "Failed on "+w[i] ;
     }
+    return "serial done" ;
 };
 
 test().then(log, $error);
 
-/* Parallel loop. NB: This doesn't work in Generator mode as the executing function
- * (within the forEach) cannot yield as it is synchronous 
- * 
- * DELETE ME IF USING GENERATORS
- * */
+/* Parallel loop - start all the awaits at one.
+ * This doesn't work with generators as the executing function
+ * (within the forEach) cannot yield as it is synchronous, so nodent falls
+ * back to using Promises
+ */
 w.forEach(function(e) {
-    log("each", await remote(e));
+  try {
+    log("parallel", await remote(e));
+  } catch (ex) {
+    console.error("parallel "+e,ex) ;
+  }
 });

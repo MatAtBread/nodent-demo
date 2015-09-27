@@ -13,7 +13,7 @@ function handle(req,res) {
 	var complete = res.end ;
 	res.end = function() {
 		complete.apply(this,arguments) ;
-		console.log(JSON.stringify([req.method,req.url,res.statusCode,req.socket.remoteAddress,req.headers])) ;
+//		console.log(JSON.stringify([req.method,req.url,res.statusCode,req.socket.remoteAddress,req.headers])) ;
 	};
 
 	var url = req.url.split("?") ;
