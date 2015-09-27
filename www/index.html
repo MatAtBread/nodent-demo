@@ -37,10 +37,18 @@ pre div:last-child {
 	background-color: #fee !important;
 	color: #733 !important;
 }
+
+#es5,#source {
+	width:100%;
+	height: 100%;
+}
+
 </style>
 <script src="https://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
+<script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="source-map.js"></script>
 <script>
-	var ui = {};
+	var sm, ui = {};
 
 	function breathe() {
 		return function($return,$error){
@@ -87,15 +95,16 @@ pre div:last-child {
 	}
 
 	function compile() {
-		var src = ui.source.value;
+		var src = source.value;
 		if (!src)
 			return;
 		window.location.hash = encodeURIComponent(src);
 
 		var ref = ui.impl[ui.impl.selectedIndex].value ;
 		http("POST", ref, src)(function(resp){
-			ui.source.value = resp.pretty;
-			ui.es5.value = resp.compiled;
+//			source.value = resp.pretty;
+			es5.value = resp.compiled;
+			sm = new window.sourceMap.SourceMapConsumer(resp.map) ;
 			if (resp.message)
 				console.error(resp.message) ;
 		},console.error) ;
@@ -103,7 +112,7 @@ pre div:last-child {
 
 	function execute() {
 		try {
-			(new Function(ui.es5.value))();
+			(new Function(es5.value))();
 		} catch (ex) {
 			log(ex.message);
 		}
@@ -113,7 +122,7 @@ pre div:last-child {
 		var ref = ui.examples[ui.examples.selectedIndex].value ;
 		if (ref) {
 			http("GET",ref)(function(code){
-				ui.source.value = code ;
+				source.value = (code) ;
 			}) ;
 		}
 	}
@@ -128,7 +137,7 @@ pre div:last-child {
 
 		// Double decode as NPMJS makes a mess of URLs in links
 		if (window.location.hash)
-			ui.source.value = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1)));
+			source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
 
 		try {
 			var temp = (new Promise(function() {})) && true;
@@ -164,14 +173,14 @@ pre div:last-child {
 	</div>
 
 	<div>
-		<block> <textarea id="source">//ES7 code</textarea>
+		<block> <div id="source">//ES7 code</div>
 		<div class="options">
 			<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
 			<select id="impl" onchange="compile()"><option selected value="/es7">Pure ES5</option></select>
 			<button onclick="compile()">Compile</button>
 		</div>
 		</block>
-		<block> <textarea id="es5"></textarea>
+		<block> <div id="es5"></div>
 		<div class="options">
 			<button onclick="execute()">Run compiled JavaScript</button>
 		</div>
@@ -179,4 +188,51 @@ pre div:last-child {
 		<pre id="log"></pre>
 	</div>
 </body>
+
+<script>
+var superProto = {
+	value:{
+		get:function(){ return this.getValue() },
+		set:function(text) {
+			this.setValue(text);
+			this.clearSelection();
+		}
+	}
+};
+function extEdit(id) {
+	var e = ace.edit(id) ;
+	e.setShowPrintMargin(false);
+	return Object.create(e,superProto) ;
+}
+var es5 = extEdit("es5");
+var source = extEdit("source");
+
+function syncOutput() {
+	if (sm && source.$isFocused) {
+		var c = source.selection.getCursor();
+		var g = sm.generatedPositionFor({source:'source.js',line:c.row+1,column:c.column}) ;
+		if (g.line)
+			es5.selection.moveCursorTo(g.line-1,g.column) ;
+	}
+}
+
+function syncSource() {
+	if (sm  && es5.$isFocused) {
+		var c = es5.selection.getCursor();
+		var g = sm.originalPositionFor({line:c.row+1,column:c.column}) ;
+		if (g.line)
+			source.selection.moveCursorTo(g.line-1,g.column) ;
+	}
+}
+
+source.getSession().selection.on('changeCursor',function(evt){
+	syncOutput() ;
+//	compile() ;
+});
+
+es5.getSession().selection.on('changeCursor',syncSource);
+
+es5.getSession().setMode("ace/mode/javascript");
+//source.getSession().setMode("ace/mode/javascript");
+</script>
 </html>

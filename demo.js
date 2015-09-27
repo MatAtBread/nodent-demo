@@ -19,14 +19,17 @@ function handle(req,res) {
 	var url = req.url.split("?") ;
 	switch(url[0]) {
 	case '/':
+	  url[0] = '/index.html';
+	case '/index.html':
+	case '/source-map.js':
 		res.statusCode = 200 ;
 		res.setHeader("Content-type","text/html") ;
-		fs.readFile('www/index.html',function(err,data){
+		fs.readFile('www'+url[0],function(err,data){
 			res.end(data.toString().
 					replace("<@$asyncbind@>",nodent.$asyncbind.toString()).
 					replace("<@$asyncspawn@>",nodent.$asyncspawn.toString())
 					) ;
-		}) ;    
+		}) ;
 		break ;
 
 	case '/es7':
@@ -46,8 +49,9 @@ function handle(req,res) {
 				var pr = nodent.parse(res.body,"source.js",3,options);
 				nodent.prettyPrint(pr,3,options) ;
 				result.pretty = pr.code ;
-				result.compiled = nodent.compile(res.body,"source.js",2,options).code ;
-				
+				pr = nodent.compile(res.body,"source.js",2,options) ;
+				result.compiled = pr.code ;
+				result.map = pr.sourcemap ;
 				res.statusCode = 200 ;
 				res.setHeader("Content-type","application/json") ;
 				res.end(JSON.stringify(result)) ;
@@ -68,7 +72,7 @@ function handle(req,res) {
 	default:
 		if (url[0].indexOf("..")<0) {
 			res.statusCode = 200 ;
-			var fileName = 'www/'+url[0] ; 
+			var fileName = 'www/'+url[0] ;
 			fs.stat(fileName,function(err,stat){
 				if (err) return sendError(req,res) ;
 				if (stat.isFile()) {
@@ -76,7 +80,7 @@ function handle(req,res) {
 						if (err) return sendError(req,res) ;
 						res.setHeader("Content-type","application/json") ;
 						res.end(JSON.stringify(data.toString())) ;
-					}) ;    
+					}) ;
 				} else if (stat.isDirectory()) {
 					fs.readdir(fileName,function(err,data){
 						if (err) return sendError(req,res) ;
