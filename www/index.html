@@ -31,17 +31,19 @@ pre div:last-child {
 
 .banner {
 		position: fixed;
-		right: -1.5em;
+		right: -5.5em;
 		top: 2.5em;
 		transform: rotate(45deg);
 		width: 10em;
 		z-index: 4;
 		font-size: 0.9em;
 		text-align: center;
-		background-color: white;
-		border: 1px solid #ccc;
-		border-radius: 0.5em;
-		padding: 0.5em;
+		background-color: rgba(180,60,60,0.6);
+		padding: 0.5em 5em;
+		color: white;
+}
+.banner a:visited, a:hover {
+	color: yellow;
 }
 
 #es5,#source {
@@ -52,6 +54,7 @@ pre div:last-child {
 
 body {
 	height: 100%;
+	font-family: sans-serif;
 }
 #code,#options,#log {
 	position: absolute;
@@ -60,7 +63,7 @@ body {
 
 #code {
 	top:2.5em;
-	bottom:11em;
+	bottom:11.5em;
 }
 #options {
 	bottom:8.5em;
