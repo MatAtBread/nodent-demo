@@ -26,6 +26,7 @@ function handle(req,res) {
 		res.setHeader("Content-type","text/html") ;
 		fs.readFile('www'+url[0],function(err,data){
 			res.end(data.toString().
+					replace("<@version@>",nodent.version.toString()).
 					replace("<@$asyncbind@>",nodent.$asyncbind.toString()).
 					replace("<@$asyncspawn@>",nodent.$asyncspawn.toString())
 					) ;

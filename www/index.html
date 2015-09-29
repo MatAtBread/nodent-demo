@@ -29,19 +29,33 @@ pre div:last-child {
 	color: #733 !important;
 }
 
-.banner {
-		position: fixed;
-		right: -5.5em;
-		top: 2.5em;
-		transform: rotate(45deg);
-		width: 10em;
-		z-index: 4;
-		font-size: 0.9em;
-		text-align: center;
-		background-color: rgba(180,60,60,0.6);
-		padding: 0.5em 5em;
-		color: white;
+@keyframes bump {
+        0% { top: -6em; right: -10.5em; }
+        0% { top: -2em; right: -7.5em; }
+	100% { top: -6em; right: -10.5em; }
 }
+
+.banner {
+	position: fixed;
+	right: -10.5em;
+	top: -6em;
+	transform: rotate(45deg);
+	width: 10em;
+	z-index: 4;
+	font-size: 0.9em;
+	text-align: center;
+	background-color: rgba(180,60,60,0.6);
+	padding: 7em 5em 0.5em 5em;
+	color: white;
+	transition: top 0.3s, right 0.3s ;
+	animation: bump 0.6s;
+}
+
+.banner:hover {
+	top: -2em;
+	right: -7.5em;
+}
+
 .banner a:visited, a:hover {
 	color: yellow;
 }
@@ -74,10 +88,18 @@ body {
 	margin-top: 0;
 	height: 9em;
 }
+
+version {
+	font-size: 0.8em;
+	position: absolute;
+	right: 1em;
+	top: 0.5em;
+}
+
 </style>
 </head>
 <body>
-	<h2>Nodent ES7 to ES5 compiler</h2>
+	<h2>Nodent ES7 to ES5/6 compiler</h2><version>v<@version@></version>
 	<div class="banner">
 		Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>
 		Fork me on <a href="https://github.com/MatAtBread/nodent">github</a>
