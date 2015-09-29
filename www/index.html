@@ -41,7 +41,7 @@ pre div:last-child {
 	top: -6em;
 	transform: rotate(45deg);
 	width: 10em;
-	z-index: 4;
+	z-index: 7;
 	font-size: 0.9em;
 	text-align: center;
 	background-color: rgba(180,60,60,0.6);
@@ -69,6 +69,7 @@ pre div:last-child {
 body {
 	height: 100%;
 	font-family: sans-serif;
+	overflow-x: hidden;
 }
 #code,#options,#log {
 	position: absolute;
@@ -86,14 +87,17 @@ body {
 #log {
 	bottom: 0;
 	margin-top: 0;
-	height: 9em;
+	height: 8.5em;
+	width: 98%;
+	overflow-x: hidden;
 }
 
 version {
 	font-size: 0.8em;
 	position: absolute;
 	right: 1em;
-	top: 0.5em;
+	bottom: 11em;
+	color: rgb(160,160,160);
 }
 
 </style>
