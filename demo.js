@@ -1,4 +1,5 @@
-var nodent = require('nodent')({log:function(){ compileLog.push(arguments) }}) ;
+var nodent = require('nodent') ;
+nodent = nodent({log:function(){ compileLog.push(arguments) }}) ;
 var http = require('http') ;
 var fs = require('fs') ;
 var compileLog ;
