@@ -3,9 +3,9 @@ async function httpGet(url) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function() {
         if (xhr.status < 400) {
-            return async xhr.responseText;
+            async return xhr.responseText;
         } else {
-            throw async new Error(xhr.statusText);
+            async throw new Error(xhr.statusText);
         }
     };
     xhr.open("get", url, true);

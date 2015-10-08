@@ -289,7 +289,7 @@ var source = extEdit("source");
 function syncOutput() {
 	if (sm && source.$isFocused) {
 		var c = source.selection.getCursor();
-		var g = sm.generatedPositionFor({source:'source.js',line:c.row+1,column:c.column}) ;
+		var g = sm.generatedPositionFor({source:'source.js(original)',line:c.row+1,column:c.column}) ;
 		if (g.line){
 			es5.selection.clearSelection() ;
 			es5.selection.moveCursorTo(g.line-1,g.column) ;
