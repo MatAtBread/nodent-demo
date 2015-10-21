@@ -19,6 +19,20 @@ pre div:last-child {
 	color: #337;
 }
 
+#compileError {
+    position: absolute;
+    left: 2em;
+    bottom: 14em;
+    border: 2px solid red;
+    z-index: 9;
+    background-color: rgba(128,20,20,0.7);
+    color: white;
+    padding: 1em;
+    border-radius: 0.5em;
+    width: 40%;
+    tab-size:8 ;
+}
+
 #options>* {
 	margin-right: 1em;
 	margin-top: .5em;
@@ -127,7 +141,8 @@ version {
 			<button onclick="execute()">Run compiled JavaScript</button>
 			<button onclick="clearLog()">Clear log</button>
 	</div>
-		<pre id="log"></pre>
+	<pre id="log"></pre>
+	<pre id="compileError"></pre>
 </body>
 
 <script src="http://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
@@ -193,11 +208,21 @@ version {
 		var ref = ui.impl[ui.impl.selectedIndex].value ;
 		http("POST", ref, src)(function(resp){
 //			source.value = resp.pretty;
+                        ui.compileError.innerText = "" ;
+                        ui.compileError.style.visibility = 'hidden' ;
+
 			es5.value = resp.compiled;
 			sm = new window.sourceMap.SourceMapConsumer(resp.map) ;
 			if (resp.message)
 				console.error(resp.message) ;
-		},console.error) ;
+		},function(ex){
+			clearLog() ;
+			ui.compileError.innerText = ex ;
+			ui.compileError.style.visibility = 'visible' ;
+			ui.compileError.onclick = function() {
+				ui.compileError.style.visibility = 'hidden';
+			} ;
+		}) ;
 	}
 
 	function pretty() {
@@ -309,6 +334,7 @@ function syncSource() {
 }
 
 source.getSession().selection.on('changeCursor',syncOutput);
+source.getSession().on('change',compile);
 es5.getSession().selection.on('changeCursor',syncSource);
 es5.getSession().setMode("ace/mode/javascript");
 </script>
