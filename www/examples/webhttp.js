@@ -10,14 +10,14 @@ async function httpGet(url) {
     };
     xhr.open("get", url, true);
     xhr.send();
-};
+}
 
 async function remote(w) {
     if (w.length > 6) {
         return await httpGet("/failure?" + w);
     }
     return await httpGet("/echo?" + w);
-};
+}
 
 var w = "The quick brown fox jumps thoughtlessly over the lazy dog".split(" ");
 
@@ -32,7 +32,7 @@ async function test() {
         return "Failed on "+w[i] ;
     }
     return "serial done" ;
-};
+}
 
 test().then(log, $error);
 

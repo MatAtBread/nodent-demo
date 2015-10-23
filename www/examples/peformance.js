@@ -1,7 +1,7 @@
 /* Aync addition */
 async function add(a, b) {
     return a + b;
-};
+}
 
 /* Run the async addition lots of times */
 async function test() {
@@ -13,13 +13,13 @@ async function test() {
         x = await add(x, 1);
     }
     return n - x;
-};
+}
 
 async function run() {
     var t = Date.now();
     await test();
     return Date.now() - t;
-};
+}
 
 /* Run the test, in a Generator friendly way from non-async code. */
 run().then(log, $error);
