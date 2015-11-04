@@ -146,7 +146,17 @@ version {
 	<pre id="compileError"></pre>
 </body>
 
-<script src="http://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
+<script>
+try {
+	var isPromiseDefined = Promise ;
+	if (!isPromiseDefined)
+		throw false ;
+} catch (ex) { 
+	var script = document.createElement("script") ;
+	script.src = "http://cdn.jsdelivr.net/bluebird/latest/bluebird.js" ;
+	document.body.appendChild(script) ;
+}
+</script>
 <script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="source-map.js"></script>
 <script>
