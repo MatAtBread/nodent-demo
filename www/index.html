@@ -215,6 +215,7 @@ try {
 		if (!src)
 			return;
 		window.location.hash = encodeURIComponent(src);
+		//history.replaceState({},"Nodent", "#"+encodeURIComponent(src)) ;
 
 		var ref = ui.impl[ui.impl.selectedIndex].value ;
 		http("POST", ref, src)(function(resp){
@@ -241,6 +242,8 @@ try {
 		if (!src)
 			return;
 		window.location.hash = encodeURIComponent(src);
+		//history.replaceState({},"Nodent", "#"+encodeURIComponent(src)) ;
+
 
 		var ref = ui.impl[ui.impl.selectedIndex].value ;
 		http("POST", ref, src)(function(resp){
