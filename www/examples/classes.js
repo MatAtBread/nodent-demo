@@ -22,5 +22,5 @@ async function test() {
     console.log(await a.info,await b.info) ;
 }
 
-test().then() ;
+test().then(function(){},$error) ;
 

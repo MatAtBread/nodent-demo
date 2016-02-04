@@ -10,11 +10,17 @@ function sendError(req,res){
 	res.end("Not found: "+req.url) ;
 }
 
+var clients = [];
 function handle(req,res) {
 	var complete = res.end ;
 	res.end = function() {
 		complete.apply(this,arguments) ;
-//		console.log(JSON.stringify([req.method,req.url,res.statusCode,req.socket.remoteAddress,req.headers])) ;
+		if (clients.indexOf(req.socket.remoteAddress)<0) {
+			clients.push(req.socket.remoteAddress) ;
+			if (clients.length>1000)
+				clients.splice(0,clients.length-1000) ;
+			console.log(JSON.stringify([req.method,req.url,res.statusCode,req.socket.remoteAddress,req.headers])) ;
+		}
 	};
 
 	var url = req.url.split("?") ;
