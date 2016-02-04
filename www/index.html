@@ -146,7 +146,6 @@ version {
 	<pre id="compileError"></pre>
 </body>
 
-<script src="http://cdn.jsdelivr.net/bluebird/latest/bluebird.js"></script>
 <script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="source-map.js"></script>
 <script>
@@ -269,29 +268,44 @@ version {
 		if (window.location.hash)
 			source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
 
+		var promiseSource = "(native)"
 		try {
-			var temp = (new Promise(function() {})) && true;
-    		var option = document.createElement("option") ;
-    		option.value = "/promise" ;
-    		option.textContent = "Use Promises" ;
-    		option.selected = true ;
-    		ui.impl.appendChild(option) ;
-
-    		temp = eval("function *gen(){}") ;
-        	option = document.createElement("option") ;
-        	option.value = "/generators" ;
-        	option.textContent = "Use Promises/Generators" ;
-        	ui.impl.appendChild(option) ;
-    	} catch (ex) { }
-
-		http("get","/examples")(function(examples){
-        	examples.forEach(function(fn){
-        		var option = document.createElement("option") ;
-        		option.value = fn ;
-        		option.textContent = fn.split("/").pop() ;
-        		ui.examples.appendChild(option) ;
-        	}) ;
-		},console.error) ;
+			var temp = (new Promise(function() {},function() {})) && true;
+			continueLoad() ;
+		} catch (ex) {
+		    // No Promise implementation
+		    promiseSource = "(bluebird)" ;
+		    var bluebird = document.createElement("script") ;
+		    bluebird.onload = continueLoad ;
+		    bluebird.src = "http://cdn.jsdelivr.net/bluebird/latest/bluebird.js" ;
+		    document.body.appendChild(bluebird) ;
+		}
+		function continueLoad() {
+			try {
+				temp = (new Promise(function() {})) && true;
+	    		var option = document.createElement("option") ;
+	    		option.value = "/promise" ;
+	    		option.textContent = "Use Promises "+promiseSource ;
+	    		option.selected = true ;
+	    		ui.impl.appendChild(option) ;
+	
+	    		temp = eval("function *gen(){}") ;
+	        	option = document.createElement("option") ;
+	        	option.value = "/generators" ;
+	        	option.textContent = "Use Promises/Generators" ;
+	        	ui.impl.appendChild(option) ;
+	        	compile() ;
+	    	} catch (ex) { }
+	
+			http("get","/examples")(function(examples){
+	        	examples.forEach(function(fn){
+	        		var option = document.createElement("option") ;
+	        		option.value = fn ;
+	        		option.textContent = fn.split("/").pop() ;
+	        		ui.examples.appendChild(option) ;
+	        	}) ;
+			},console.error) ;
+		}
 	}
 </script>
 <script>
