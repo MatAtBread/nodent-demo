@@ -18,9 +18,8 @@ async function test() {
 async function run() {
     var t = Date.now();
     await test();
-    log(Date.now() - t, __nodent.es7, __nodent.promises, __nodent.generators);
-    return ;
+    return Date.now() - t;
 }
 
 /* Run the test, in a Generator friendly way from non-async code. */
-run();
+run().then(log);

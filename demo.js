@@ -45,6 +45,7 @@ function handle(req,res) {
 	case '/generators':
 		var options = {
 			es7:true,
+			lazyThenables:req.url=='/es7',
 			generators:req.url=='/generators',
 			promises:req.url=='/promise'
 		} ;
