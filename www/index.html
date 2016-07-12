@@ -353,6 +353,8 @@ function syncSource() {
 
 source.getSession().selection.on('changeCursor',syncOutput);
 source.getSession().on('change',compile);
+source.getSession().setMode("ace/mode/javascript");
+
 es5.getSession().selection.on('changeCursor',syncSource);
 es5.getSession().setMode("ace/mode/javascript");
 </script>
