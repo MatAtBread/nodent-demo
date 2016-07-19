@@ -286,19 +286,29 @@ version {
 		function continueLoad() {
 			try {
 				temp = (new Promise(function() {})) && true;
-	    		var option = document.createElement("option") ;
-	    		option.value = "/promise" ;
-	    		option.textContent = "Use Promises "+promiseSource ;
-	    		option.selected = true ;
-	    		ui.impl.appendChild(option) ;
+	    			var option = document.createElement("option") ;
+		    		option.value = "/promise" ;
+		    		option.textContent = "Use Promises "+promiseSource ;
+	    			option.selected = true ;
+	    			ui.impl.appendChild(option) ;
 	
-	    		temp = eval("function *gen(){}") ;
-	        	option = document.createElement("option") ;
-	        	option.value = "/generators" ;
-	        	option.textContent = "Use Promises/Generators" ;
-	        	ui.impl.appendChild(option) ;
-	        	compile() ;
-	    	} catch (ex) { }
+		    		temp = eval("function *gen(){}") ;
+		        	option = document.createElement("option") ;
+	        		option.value = "/generators" ;
+	        		option.textContent = "Use Promises/Generators" ;
+	  		      	ui.impl.appendChild(option) ;
+	        		compile() ;
+		    	} catch (ex) { }
+
+                        try {
+                                temp = eval("async function a(){}") ;
+                                option = document.createElement("option") ;
+                                option.value = "/engine" ;
+                                option.textContent = "Use JS async/await engine" ;
+                                ui.impl.appendChild(option) ;
+                                compile() ;
+                        } catch (ex) { }
+
 	
 			http("get","/examples")(function(examples){
 	        	examples.forEach(function(fn){

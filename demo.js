@@ -43,11 +43,13 @@ function handle(req,res) {
 	case '/es7':
 	case '/promise':
 	case '/generators':
+	case '/engine':
 		var options = {
 			es7:true,
 			lazyThenables:req.url=='/es7',
 			generators:req.url=='/generators',
-			promises:req.url=='/promise'
+			promises:req.url=='/promise',
+			engine:req.url=='/engine'
 		} ;
 		res.body = "" ;
 		req.on('data',function(data){ res.body += data.toString() }) ;
