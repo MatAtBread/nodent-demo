@@ -28,7 +28,8 @@ function handle(req,res) {
 	case '/':
 	  url[0] = '/index.html';
 	case '/index.html':
-	case '/source-map.js':
+    case '/source-map.js':
+    case '/setImmediate.js':
 		res.statusCode = 200 ;
 		res.setHeader("Content-type","text/html") ;
 		fs.readFile('www'+url[0],function(err,data){
@@ -40,13 +41,14 @@ function handle(req,res) {
 		}) ;
 		break ;
 
-	case '/es7':
+    case '/lazy':
+    case '/es7':
 	case '/promise':
 	case '/generators':
 	case '/engine':
 		var options = {
 			es7:true,
-			lazyThenables:req.url=='/es7',
+			lazyThenables:req.url=='/lazy',
 			generators:req.url=='/generators',
 			promises:req.url=='/promise',
 			engine:req.url=='/engine'

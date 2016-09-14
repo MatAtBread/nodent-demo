@@ -136,7 +136,7 @@ version {
 	</div>
 	<div id="options">
 			<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
-			<select id="impl" onchange="compile()"><option selected value="/es7">Pure ES5</option></select>
+			<select id="impl" onchange="compile()"><option selected value="/lazy">Pure ES5 (lazy)</option><option selected value="/es7">Pure ES5 (eager)</option></select>
 			<button onclick="pretty()">Pretty</button>
 			<button onclick="compile()">Compile</button>
 			<button onclick="execute()">Run compiled JavaScript</button>
@@ -148,178 +148,171 @@ version {
 
 <script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="source-map.js"></script>
+<script src="setImmediate.js"></script>
 <script>
-	var sm, ui = {};
+    var sm, ui = {};
 
-	function breathe() {
-		return function($return,$error){
-			setTimeout(function(){
-				return $return(0)
-			},0);
-		}.$asyncbind(this) ;
-	}
+    Function.prototype.$asyncbind = <@$asyncbind@>;
+    Function.prototype.$asyncspawn = <@$asyncspawn@>;
 
-	Function.prototype.$asyncbind = <@$asyncbind@>;
-	Function.prototype.$asyncspawn = <@$asyncspawn@>;
+    function breathe() {
+        return function($return, $error) {
+            setImmediate($return);
+        };
+    }
 
-	function log() {
-		var line = document.createElement("div");
-		line.textContent = Array.prototype.slice.call(arguments).join(",")+ "\n";
-		ui.log.appendChild(line);
-		while (ui.log.children.length > 32)
-			ui.log.removeChild(ui.log.children[0]);
-		line.scrollIntoView(false);
-		return line ;
-	}
-	function clearLog() {
-			ui.log.innerHTML = "" ;
-	}
+    function log() {
+        var line = document.createElement("div");
+        line.textContent = Array.prototype.slice.call(arguments).join(",") + "\n";
+        ui.log.appendChild(line);
+        while (ui.log.children.length > 32)
+            ui.log.removeChild(ui.log.children[0]);
+        line.scrollIntoView(false);
+        return line;
+    }
+    function clearLog() {
+        ui.log.innerHTML = "";
+    }
 
-	$error = function() {
-		log.apply(this,arguments).className = "errorlog" ;
-	}
+    $error = function() {
+        log.apply(this, arguments).className = "errorlog";
+    }
 
-	console.log = log;
-	console.error = $error ;
+    console.log = log;
+    console.error = $error;
 
-	function http(method,url,data) {
-		return function(resolve,reject) {
-		    var xhr = new XMLHttpRequest() ;
-		    xhr.onload = function(){
-		    	try {
-			        if (xhr.status>=400)
-			        	throw new Error(xhr.responseText) ;
-			        return resolve(JSON.parse(xhr.responseText)) ;
-		    	} catch (ex) {
-		    		return reject(ex) ;
-		    	}
-		    }
-		    xhr.open(method,url,true) ;
-		    xhr.send(data) ;
-		}
-	}
+    function http(method, url, data) {
+        return function(resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.onload = function() {
+                try {
+                    if (xhr.status >= 400)
+                        throw new Error(xhr.responseText);
+                    return resolve(JSON.parse(xhr.responseText));
+                } catch (ex) {
+                    return reject(ex);
+                }
+            }
+            xhr.open(method, url, true);
+            xhr.send(data);
+        }
+    }
 
-	function compile() {
-		var src = source.value;
-		if (!src)
-			return;
-		window.location.hash = encodeURIComponent(src);
-		//history.replaceState({},"Nodent", "#"+encodeURIComponent(src)) ;
+    function compile() {
+        var src = source.value;
+        if (!src)
+            return;
+        window.location.hash = encodeURIComponent(src);
 
-		var ref = ui.impl[ui.impl.selectedIndex].value ;
-		http("POST", ref, src)(function(resp){
-//			source.value = resp.pretty;
-                        ui.compileError.innerText = "" ;
-                        ui.compileError.style.visibility = 'hidden' ;
+        var ref = ui.impl[ui.impl.selectedIndex].value;
+        http("POST", ref, src)(function(resp) {
+            ui.compileError.innerText = "";
+            ui.compileError.style.visibility = 'hidden';
 
-			es5.value = resp.compiled;
-			sm = new window.sourceMap.SourceMapConsumer(resp.map) ;
-			if (resp.message)
-				console.error(resp.message) ;
-		},function(ex){
-			clearLog() ;
-			ui.compileError.innerText = ex ;
-			ui.compileError.style.visibility = 'visible' ;
-			ui.compileError.onclick = function() {
-				ui.compileError.style.visibility = 'hidden';
-			} ;
-		}) ;
-	}
+            es5.value = resp.compiled;
+            sm = new window.sourceMap.SourceMapConsumer(resp.map);
+            if (resp.message)
+                console.error(resp.message);
+        }, function(ex) {
+            clearLog();
+            ui.compileError.innerText = ex;
+            ui.compileError.style.visibility = 'visible';
+            ui.compileError.onclick = function() {
+                ui.compileError.style.visibility = 'hidden';
+            };
+        });
+    }
 
-	function pretty() {
-		var src = source.value;
-		if (!src)
-			return;
-		window.location.hash = encodeURIComponent(src);
-		//history.replaceState({},"Nodent", "#"+encodeURIComponent(src)) ;
+    function pretty() {
+        var src = source.value;
+        if (!src)
+            return;
+        window.location.hash = encodeURIComponent(src);
 
+        var ref = ui.impl[ui.impl.selectedIndex].value;
+        http("POST", ref, src)(function(resp) {
+            source.value = resp.pretty;
+            if (resp.message)
+                console.error(resp.message);
+        }, console.error);
+    }
 
-		var ref = ui.impl[ui.impl.selectedIndex].value ;
-		http("POST", ref, src)(function(resp){
-			source.value = resp.pretty;
-			if (resp.message)
-				console.error(resp.message) ;
-		},console.error) ;
-	}
+    function execute() {
+        try {
+            (new Function(es5.value))();
+        } catch (ex) {
+            $error(ex);
+        }
+    }
 
-	function execute() {
-		try {
-			(new Function(es5.value))();
-		} catch (ex) {
-			$error(ex);
-		}
-	}
+    function loadExample() {
+        var ref = ui.examples[ui.examples.selectedIndex].value;
+        if (ref) {
+            http("GET", ref)(function(code) {
+                source.value = (code);
+            });
+        }
+    }
 
-	function loadExample() {
-		var ref = ui.examples[ui.examples.selectedIndex].value ;
-		if (ref) {
-			http("GET",ref)(function(code){
-				source.value = (code) ;
-			}) ;
-		}
-	}
+    window.onload = function() {
+        // UI elements
+        Array.prototype.forEach.call(document.getElementsByTagName("*"), function(e) {
+            if (e.id)
+                ui[e.id] = e;
+        });
 
-	window.onload = function() {
-		// UI elements
-		Array.prototype.forEach.call(document.getElementsByTagName("*"),
-				function(e) {
-					if (e.id)
-						ui[e.id] = e;
-				});
+        // Double decode as NPMJS makes a mess of URLs in links
+        if (window.location.hash)
+            source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
 
-		// Double decode as NPMJS makes a mess of URLs in links
-		if (window.location.hash)
-			source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
+        var promiseSource = "(native)"
+        try {
+            var temp = (new Promise(function() { }, function() { })) && true;
+            continueLoad();
+        } catch (ex) {
+            // No Promise implementation
+            promiseSource = "(bluebird)";
+            var bluebird = document.createElement("script");
+            bluebird.onload = continueLoad;
+            bluebird.src = "http://cdn.jsdelivr.net/bluebird/latest/bluebird.js";
+            document.body.appendChild(bluebird);
+        }
+        function continueLoad() {
+            try {
+                temp = (new Promise(function() { })) && true;
+                var option = document.createElement("option");
+                option.value = "/promise";
+                option.textContent = "Use Promises " + promiseSource;
+                option.selected = true;
+                ui.impl.appendChild(option);
 
-		var promiseSource = "(native)"
-		try {
-			var temp = (new Promise(function() {},function() {})) && true;
-			continueLoad() ;
-		} catch (ex) {
-		    // No Promise implementation
-		    promiseSource = "(bluebird)" ;
-		    var bluebird = document.createElement("script") ;
-		    bluebird.onload = continueLoad ;
-		    bluebird.src = "http://cdn.jsdelivr.net/bluebird/latest/bluebird.js" ;
-		    document.body.appendChild(bluebird) ;
-		}
-		function continueLoad() {
-			try {
-				temp = (new Promise(function() {})) && true;
-	    			var option = document.createElement("option") ;
-		    		option.value = "/promise" ;
-		    		option.textContent = "Use Promises "+promiseSource ;
-	    			option.selected = true ;
-	    			ui.impl.appendChild(option) ;
-	
-		    		temp = eval("function *gen(){}") ;
-		        	option = document.createElement("option") ;
-	        		option.value = "/generators" ;
-	        		option.textContent = "Use Promises/Generators" ;
-	  		      	ui.impl.appendChild(option) ;
-	        		compile() ;
-		    	} catch (ex) { }
+                temp = eval("function *gen(){}");
+                option = document.createElement("option");
+                option.value = "/generators";
+                option.textContent = "Use Promises/Generators";
+                ui.impl.appendChild(option);
+                compile();
+            } catch (ex) { }
 
-                        try {
-                                temp = eval("async function a(){}") ;
-                                option = document.createElement("option") ;
-                                option.value = "/engine" ;
-                                option.textContent = "Use JS async/await engine" ;
-                                ui.impl.appendChild(option) ;
-                                compile() ;
-                        } catch (ex) { }
+            try {
+                temp = eval("async function a(){}");
+                option = document.createElement("option");
+                option.value = "/engine";
+                option.textContent = "Use JS async/await engine";
+                ui.impl.appendChild(option);
+                compile();
+            } catch (ex) { }
 
-	
-			http("get","/examples")(function(examples){
-	        	examples.forEach(function(fn){
-	        		var option = document.createElement("option") ;
-	        		option.value = fn ;
-	        		option.textContent = fn.split("/").pop() ;
-	        		ui.examples.appendChild(option) ;
-	        	}) ;
-			},console.error) ;
-		}
-	}
+            http("get", "/examples")(function(examples) {
+                examples.forEach(function(fn) {
+                    var option = document.createElement("option");
+                    option.value = fn;
+                    option.textContent = fn.split("/").pop();
+                    ui.examples.appendChild(option);
+                });
+            }, console.error);
+        }
+    }
 </script>
 <script>
 var superProto = {
