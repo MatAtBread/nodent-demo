@@ -155,10 +155,11 @@ version {
     Function.prototype.$asyncbind = <@$asyncbind@>;
     Function.prototype.$asyncspawn = <@$asyncspawn@>;
 
+    Function.prototype.$asyncbind() ;
     function breathe() {
-        return function($return, $error) {
+        return new (Function.prototype.$asyncbind.Thenable)(function($return, $error) {
             setImmediate($return);
-        };
+        });
     }
 
     function log() {
