@@ -157,9 +157,9 @@ version {
 
     Function.prototype.$asyncbind() ;
     function breathe() {
-        return new (Function.prototype.$asyncbind.Thenable)(function($return, $error) {
+        return (function($return, $error) {
             setImmediate($return);
-        });
+        }).$asyncbind(this);
     }
 
     function log() {
