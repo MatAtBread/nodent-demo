@@ -136,7 +136,7 @@ version {
 	</div>
 	<div id="options">
 			<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
-			<select id="impl" onchange="compile()"><option selected value="/lazy">Pure ES5 (lazy)</option><option selected value="/es7">Pure ES5 (eager)</option></select>
+			<select id="impl" onchange="compile()"><option value="/lazy">Pure ES5 (lazy)</option><option selected value="/es7">Pure ES5 (eager)</option></select>
 			<button onclick="pretty()">Pretty</button>
 			<button onclick="compile()">Compile</button>
 			<button onclick="execute()">Run compiled JavaScript</button>
@@ -284,7 +284,6 @@ version {
                 var option = document.createElement("option");
                 option.value = "/promise";
                 option.textContent = "Use Promises " + promiseSource;
-                option.selected = true;
                 ui.impl.appendChild(option);
 
                 temp = eval("function *gen(){}");
