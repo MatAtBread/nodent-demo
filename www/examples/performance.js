@@ -1,3 +1,7 @@
+async function breathe() {
+    setImmediate(function(){ async return });
+}
+
 /* Aync addition */
 async function add(a, b) {
     return a + b;
