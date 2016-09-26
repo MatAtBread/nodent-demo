@@ -159,7 +159,7 @@ version {
     function breathe() {
         return (function($return, $error) {
             setImmediate($return);
-        }).$asyncbind(this,this);
+        }).$asyncbind(this,true);
     }
 
     function log() {
