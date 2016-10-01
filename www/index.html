@@ -20,23 +20,27 @@ pre div:last-child {
 }
 
 #compileError {
-    visibility: hidden;
-    position: absolute;
-    left: 2em;
-    bottom: 14em;
-    border: 2px solid red;
-    z-index: 9;
-    background-color: rgba(128,20,20,0.7);
-    color: white;
-    padding: 1em;
-    border-radius: 0.5em;
-    width: 40%;
-    tab-size:8 ;
+	visibility: hidden;
+	position: absolute;
+	left: 4em;
+	bottom: 14em;
+	border: 2px solid red;
+	z-index: 9;
+	background-color: rgba(128, 20, 20, 0.7);
+	color: white;
+	padding: 1em;
+	border-radius: 0.5em;
+	width: 90%;
+	tab-size: 8;
 }
 
 #options>* {
 	margin-right: 1em;
 	margin-top: .5em;
+}
+
+#options>span {
+   font-size: 85%;
 }
 
 .errorlog {
@@ -59,10 +63,10 @@ pre div:last-child {
 	z-index: 7;
 	font-size: 0.9em;
 	text-align: center;
-	background-color: rgba(180,60,60,0.6);
+	background-color: rgba(180, 60, 60, 0.6);
 	padding: 7em 5em 0.5em 5em;
 	color: white;
-	transition: top 0.3s, right 0.3s ;
+	transition: top 0.3s, right 0.3s;
 	animation: bump 0.6s;
 }
 
@@ -75,8 +79,8 @@ pre div:last-child {
 	color: yellow;
 }
 
-#es5,#source {
-	width:100%;
+#es5, #source {
+	width: 100%;
 	height: 100%;
 	border: 1px solid #ccc;
 }
@@ -86,19 +90,22 @@ body {
 	font-family: sans-serif;
 	overflow-x: hidden;
 }
-#code,#options,#log {
+
+#code, #options, #log {
 	position: absolute;
 	width: 100%;
 }
 
 #code {
-	top:2.5em;
-	bottom:11.5em;
+	top: 2.5em;
+	bottom: 11.5em;
 }
+
 #options {
-	bottom:8.5em;
-	height:1.5em;
+	bottom: 8.5em;
+	height: 1.5em;
 }
+
 #log {
 	bottom: 0;
 	margin-top: 0;
@@ -112,13 +119,14 @@ version {
 	position: absolute;
 	right: 1em;
 	bottom: 11em;
-	color: rgb(160,160,160);
+	color: rgb(160, 160, 160);
 }
 
 </style>
 </head>
 <body>
-	<h2>Nodent ES7 to ES5/6 compiler</h2><version>v<@version@></version>
+	<h2>Nodent ES7 to ES5/6 compiler</h2>
+	<version>v<@version@></version>
 	<div class="banner">
 		Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>
 		Fork me on <a href="https://github.com/MatAtBread/nodent">github</a>
@@ -126,195 +134,219 @@ version {
 
 	<div id='code'>
 		<block>
-			<div>ES7 source</div>
-			<div id="source">//ES7 code</div>
+		<div>ES7 source</div>
+		<div id="source">//ES7 code</div>
 		</block>
 		<block>
-			<div>Compiled JS</div>
-			<div id="es5"></div>
+		<div>Compiled JS</div>
+		<div id="es5"></div>
 		</block>
 	</div>
 	<div id="options">
-			<select id="examples" onchange="loadExample()"><option value="">Enter code above or select example</option></select>
-			<select id="impl" onchange="compile()"><option value="/lazy">Pure ES5 (lazy)</option><option selected value="/es7">Pure ES5 (eager)</option></select>
-			<button onclick="pretty()">Pretty</button>
-			<button onclick="compile()">Compile</button>
-			<button onclick="execute()">Run compiled JavaScript</button>
-			<button onclick="clearLog()">Clear log</button>
+		<select id="examples" onchange="loadExample()"><option
+				value="">Enter code above or select example</option></select> <select
+			id="impl" onchange="compile()">
+			<option value='{"lazyThenables":true}'>Pure ES5 (lazy)</option>
+			<option selected value='{}'>Pure ES5 (eager)</option>
+			<option value='{"promises":true}'>Use Promises</option>
+		</select> 
+		<span>Promise type:</span><select id="promise" onchange="setPromiseType()" disabled="true"></select>
+		<span><input onchange="compile()" type="checkbox" id="noRuntime" checked>Use runtime</span>
+		<button onclick="pretty()">Pretty</button>
+		<button onclick="compile()">Compile</button>
+		<button onclick="execute()">Run compiled JavaScript</button>
+		<button onclick="clearLog()">Clear log</button>
 	</div>
 	<pre id="log"></pre>
 	<pre id="compileError"></pre>
 </body>
 
-<script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js"
+	type="text/javascript" charset="utf-8"></script>
 <script src="source-map.js"></script>
 <script src="setImmediate.js"></script>
 <script>
-    var sm, ui = {};
+var sm, ui = {};
 
-    Function.prototype.$asyncbind = <@$asyncbind@>;
-    Function.prototype.$asyncspawn = <@$asyncspawn@>;
+Function.prototype.$asyncbind = <@$asyncbind@>;
+Function.prototype.$asyncspawn = <@$asyncspawn@>;
 
-    Function.prototype.$asyncbind() ;
-    function breathe() {
-        return (function($return, $error) {
-            setImmediate($return);
-        }).$asyncbind(this,true);
+Function.prototype.$asyncbind() ;
+var promiseTypes = {
+    "Zousan":Function.$asyncbind.EagerThenable()
+} ;
+
+function breathe() {
+    return (function($return, $error) {
+        setImmediate($return);
+    }).$asyncbind(this,true);
+}
+
+function log() {
+    var line = document.createElement("div");
+    line.textContent = Array.prototype.slice.call(arguments).join(",") + "\n";
+    ui.log.appendChild(line);
+    while (ui.log.children.length > 32)
+        ui.log.removeChild(ui.log.children[0]);
+    line.scrollIntoView(false);
+    return line;
+}
+function clearLog() {
+    ui.log.innerHTML = "";
+}
+
+$error = function() {
+    log.apply(this, arguments).className = "errorlog";
+}
+
+console.log = log;
+console.error = $error;
+
+window.onload = function() {
+    // UI elements
+    Array.prototype.forEach.call(document.getElementsByTagName("*"), function(e) {
+        if (e.id)
+            ui[e.id] = e;
+    });
+
+    // Double decode as NPMJS makes a mess of URLs in links
+    if (window.location.hash)
+        source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
+
+    if (typeof Promise !=="undefined") {
+        promiseTypes.native = Promise ;
     }
 
-    function log() {
-        var line = document.createElement("div");
-        line.textContent = Array.prototype.slice.call(arguments).join(",") + "\n";
-        ui.log.appendChild(line);
-        while (ui.log.children.length > 32)
-            ui.log.removeChild(ui.log.children[0]);
-        line.scrollIntoView(false);
-        return line;
-    }
-    function clearLog() {
-        ui.log.innerHTML = "";
-    }
+    var bluebird = document.createElement("script");
+    bluebird.onload = continueLoad;
+    bluebird.src = "http://cdn.jsdelivr.net/bluebird/latest/bluebird.js";
+    document.body.appendChild(bluebird);
 
-    $error = function() {
-        log.apply(this, arguments).className = "errorlog";
-    }
-
-    console.log = log;
-    console.error = $error;
-
-    function http(method, url, data) {
-        return function(resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function() {
-                try {
-                    if (xhr.status >= 400)
-                        throw new Error(xhr.responseText);
-                    return resolve(JSON.parse(xhr.responseText));
-                } catch (ex) {
-                    return reject(ex);
-                }
-            }
-            xhr.open(method, url, true);
-            xhr.send(data);
-        }
-    }
-
-    function compile() {
-        var src = source.value;
-        if (!src)
-            return;
-        window.location.hash = encodeURIComponent(src);
-
-        var ref = ui.impl[ui.impl.selectedIndex].value;
-        http("POST", ref, src)(function(resp) {
-            ui.compileError.innerText = "";
-            ui.compileError.style.visibility = 'hidden';
-
-            es5.value = resp.compiled;
-            sm = new window.sourceMap.SourceMapConsumer(resp.map);
-            if (resp.message)
-                console.error(resp.message);
-        }, function(ex) {
-            clearLog();
-            ui.compileError.innerText = ex;
-            ui.compileError.style.visibility = 'visible';
-            ui.compileError.onclick = function() {
-                ui.compileError.style.visibility = 'hidden';
-            };
-        });
-    }
-
-    function pretty() {
-        var src = source.value;
-        if (!src)
-            return;
-        window.location.hash = encodeURIComponent(src);
-
-        var ref = ui.impl[ui.impl.selectedIndex].value;
-        http("POST", ref, src)(function(resp) {
-            source.value = resp.pretty;
-            if (resp.message)
-                console.error(resp.message);
-        }, console.error);
-    }
-
-    function execute() {
+    function continueLoad() {
         try {
-            (new Function(es5.value))();
-        } catch (ex) {
-            $error(ex);
-        }
-    }
+            promiseTypes.bluebird = Promise ;
 
-    function loadExample() {
-        var ref = ui.examples[ui.examples.selectedIndex].value;
-        if (ref) {
-            http("GET", ref)(function(code) {
-                source.value = (code);
-            });
-        }
-    }
+            temp = eval("function *gen(){}");
+            option = document.createElement("option");
+            option.value = '{"generators":true}';
+            option.textContent = "Use Promises/Generators";
+            ui.impl.appendChild(option);
+            compile();
+        } catch (ex) { }
 
-    window.onload = function() {
-        // UI elements
-        Array.prototype.forEach.call(document.getElementsByTagName("*"), function(e) {
-            if (e.id)
-                ui[e.id] = e;
-        });
-
-        // Double decode as NPMJS makes a mess of URLs in links
-        if (window.location.hash)
-            source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
-
-        var promiseSource = "(native)"
         try {
-            var temp = (new Promise(function() { }, function() { })) && true;
-            continueLoad();
-        } catch (ex) {
-            // No Promise implementation
-            promiseSource = "(bluebird)";
-            var bluebird = document.createElement("script");
-            bluebird.onload = continueLoad;
-            bluebird.src = "http://cdn.jsdelivr.net/bluebird/latest/bluebird.js";
-            document.body.appendChild(bluebird);
-        }
-        function continueLoad() {
-            try {
-                temp = (new Promise(function() { })) && true;
+            temp = eval("async function a(){}");
+            option = document.createElement("option");
+            option.value = '{"engine":true}';
+            option.textContent = "Use JS async/await engine";
+            ui.impl.appendChild(option);
+            compile();
+        } catch (ex) { }
+
+        Object.keys(promiseTypes).forEach(function(k){
+            option = document.createElement("option");
+            option.value = k;
+            option.textContent = k;
+            ui.promise.appendChild(option);
+        }) ;
+        http("get", "/examples")(function(examples) {
+            examples.forEach(function(fn) {
                 var option = document.createElement("option");
-                option.value = "/promise";
-                option.textContent = "Use Promises " + promiseSource;
-                ui.impl.appendChild(option);
-
-                temp = eval("function *gen(){}");
-                option = document.createElement("option");
-                option.value = "/generators";
-                option.textContent = "Use Promises/Generators";
-                ui.impl.appendChild(option);
-                compile();
-            } catch (ex) { }
-
-            try {
-                temp = eval("async function a(){}");
-                option = document.createElement("option");
-                option.value = "/engine";
-                option.textContent = "Use JS async/await engine";
-                ui.impl.appendChild(option);
-                compile();
-            } catch (ex) { }
-
-            http("get", "/examples")(function(examples) {
-                examples.forEach(function(fn) {
-                    var option = document.createElement("option");
-                    option.value = fn;
-                    option.textContent = fn.split("/").pop();
-                    ui.examples.appendChild(option);
-                });
-            }, console.error);
-        }
+                option.value = fn;
+                option.textContent = fn.split("/").pop();
+                ui.examples.appendChild(option);
+            });
+        }, console.error);
+        setPromiseType();
     }
-</script>
-<script>
+}
+function http(method, url, data) {
+    return function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.onload = function() {
+            try {
+                if (xhr.status >= 400)
+                    throw new Error(xhr.responseText);
+                return resolve(JSON.parse(xhr.responseText));
+            } catch (ex) {
+                return reject(ex);
+            }
+        }
+        xhr.open(method, url, true);
+        xhr.send(data);
+    }
+}
+
+function setPromiseType() {
+    var type = ui.promise[ui.promise.selectedIndex].value ;
+    window.Promise = promiseTypes[type] ;
+    var description = "window.Promise = "+window.Promise.toString().split("{")[0].replace(/\s+/g," ")+"\t// "+type ;
+    if (window.Promise.version)
+        description += " (v"+window.Promise.version+")" ; 
+    else 
+        description += " (no version)" ; 
+    console.log(description)
+}
+
+function compile() {
+    ui.promise.disabled = ui.impl.selectedIndex < 2 ;
+    var src = source.value;
+    if (!src)
+        return;
+    window.location.hash = encodeURIComponent(src);
+
+    var opts = JSON.parse(ui.impl[ui.impl.selectedIndex].value);
+    opts.noRuntime = !ui.noRuntime.checked ;
+    http("POST", "/go/"+JSON.stringify(opts), src)(function(resp) {
+        ui.compileError.innerText = "";
+        ui.compileError.style.visibility = 'hidden';
+
+        es5.value = resp.compiled;
+        sm = new window.sourceMap.SourceMapConsumer(resp.map);
+        if (resp.message)
+            console.error(resp.message);
+    }, function(ex) {
+        clearLog();
+        ui.compileError.innerText = ex;
+        ui.compileError.style.visibility = 'visible';
+        ui.compileError.onclick = function() {
+            ui.compileError.style.visibility = 'hidden';
+        };
+    });
+}
+
+function pretty() {
+    var src = source.value;
+    if (!src)
+        return;
+    window.location.hash = encodeURIComponent(src);
+
+    var opts = JSON.parse(ui.impl[ui.impl.selectedIndex].value);
+    opts.noRuntime = !ui.noRuntime.checked ;
+    http("POST", "/go/"+JSON.stringify(opts), src)(function(resp) {
+        source.value = resp.pretty;
+        if (resp.message)
+            console.error(resp.message);
+    }, console.error);
+}
+
+function execute() {
+    try {
+        (new Function(es5.value))();
+    } catch (ex) {
+        $error(ex);
+    }
+}
+
+function loadExample() {
+    var ref = ui.examples[ui.examples.selectedIndex].value;
+    if (ref) {
+        http("GET", ref)(function(code) {
+            source.value = (code);
+        });
+    }
+}
+
 var superProto = {
 	value:{
 		get:function(){ return this.getValue() },

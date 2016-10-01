@@ -24,14 +24,15 @@ function handle(req,res) {
 	};
 
 	var url = req.url.split("?") ;
-	switch(url[0]) {
-	case '/':
+	var paths = url[0].split("/") ;
+	switch(paths[1]) {
+	case '':
 	  url[0] = '/index.html';
-	case '/index.html':
-    case '/source-map.js':
-    case '/setImmediate.js':
+	case 'index.html':
+    case 'source-map.js':
+    case 'setImmediate.js':
 		res.statusCode = 200 ;
-		res.setHeader("Content-type","text/html") ;
+//		res.setHeader("Content-type","text/html") ;
 		fs.readFile('www'+url[0],function(err,data){
 			res.end(data.toString().
 					replace("<@version@>",nodent.version.toString()).
@@ -41,18 +42,14 @@ function handle(req,res) {
 		}) ;
 		break ;
 
-    case '/lazy':
-    case '/es7':
-	case '/promise':
-	case '/generators':
-	case '/engine':
-		var options = {
-			es7:true,
-			lazyThenables:req.url=='/lazy',
-			generators:req.url=='/generators',
-			promises:req.url=='/promise',
-			engine:req.url=='/engine'
-		} ;
+    case 'echo':
+        res.statusCode = 200 ;
+        res.setHeader("Content-type","text/plain") ;
+        res.end(decodeURIComponent(url[1])) ;
+        break ;
+
+    case 'go':
+		var options = JSON.parse(decodeURIComponent(paths[2]) || "{}") ;
 		res.body = "" ;
 		req.on('data',function(data){ res.body += data.toString() }) ;
 		req.on('end',function(){
@@ -74,12 +71,6 @@ function handle(req,res) {
 				res.end(ex.message+"\n"+compileLog.join("\n")) ;
 			}
 		}) ;
-		break ;
-
-	case '/echo':
-		res.statusCode = 200 ;
-		res.setHeader("Content-type","text/plain") ;
-		res.end(decodeURIComponent(url[1])) ;
 		break ;
 
 	default:
