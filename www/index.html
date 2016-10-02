@@ -170,11 +170,8 @@ var sm, ui = {};
 
 Function.prototype.$asyncbind = <@$asyncbind@>;
 Function.prototype.$asyncspawn = <@$asyncspawn@>;
-
-Function.prototype.$asyncbind() ;
-var promiseTypes = {
-    "Zousan":Function.$asyncbind.EagerThenable()
-} ;
+var nodentVersion = '<@version@>' ;
+Function.prototype.$asyncbind(function(){},true) ;
 
 function breathe() {
     return (function($return, $error) {
@@ -195,12 +192,13 @@ function clearLog() {
     ui.log.innerHTML = "";
 }
 
-$error = function() {
+window.$error = function() {
     log.apply(this, arguments).className = "errorlog";
 }
 
 console.log = log;
 console.error = $error;
+var promiseTypes = {};
 
 window.onload = function() {
     // UI elements
@@ -209,29 +207,47 @@ window.onload = function() {
             ui[e.id] = e;
     });
 
-    // Double decode as NPMJS makes a mess of URLs in links
-    if (window.location.hash)
-        source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
+    if (parseInt(nodentVersion) >= 3) {
+	    promiseTypes.Zousan = Function.$asyncbind.EagerThenable;
+    } else {
+	    promiseTypes['nodent.EagerThenable'] = Function.$asyncbind.EagerThenable;
+	    ui.noRuntime.parentNode.style.display = 'none'
+	}
 
     if (typeof Promise !=="undefined") {
         promiseTypes.native = Promise ;
     }
 
-    var bluebird = document.createElement("script");
-    bluebird.onload = continueLoad;
-    bluebird.src = "http://cdn.jsdelivr.net/bluebird/latest/bluebird.js";
-    document.body.appendChild(bluebird);
+    // Double decode as NPMJS makes a mess of URLs in links
+    if (window.location.hash)
+        source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
+
+    function loadScript(src) {
+        return (function($return, $error) {
+            var s = document.createElement("script");
+            s.onload = $return;
+            s.src = src;
+            document.body.appendChild(s);
+        }).$asyncbind(this,true);
+    }
+
+    window.Promise = undefined ;
+    loadScript("http://cdn.jsdelivr.net/bluebird/latest/bluebird.js").then(function(){
+        promiseTypes.bluebird = Promise ;
+        window.Promise = undefined ;
+        loadScript("https://www.promisejs.org/polyfills/promise-6.1.0.js").then(function(){
+            promiseTypes['promisejs.org'] = Promise ;
+            continueLoad() ;
+        })
+    })
 
     function continueLoad() {
         try {
-            promiseTypes.bluebird = Promise ;
-
             temp = eval("function *gen(){}");
             option = document.createElement("option");
             option.value = '{"generators":true}';
             option.textContent = "Use Promises/Generators";
             ui.impl.appendChild(option);
-            compile();
         } catch (ex) { }
 
         try {
@@ -240,7 +256,6 @@ window.onload = function() {
             option.value = '{"engine":true}';
             option.textContent = "Use JS async/await engine";
             ui.impl.appendChild(option);
-            compile();
         } catch (ex) { }
 
         Object.keys(promiseTypes).forEach(function(k){
@@ -258,8 +273,10 @@ window.onload = function() {
             });
         }, console.error);
         setPromiseType();
+        compile() ;
     }
 }
+
 function http(method, url, data) {
     return function(resolve, reject) {
         var xhr = new XMLHttpRequest();
