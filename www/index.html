@@ -143,15 +143,15 @@ version {
 		</block>
 	</div>
 	<div id="options">
-		<select id="examples" onchange="loadExample()"><option
+		<select id="examples" onchange="setExample()"><option
 				value="">Enter code above or select example</option></select> <select
-			id="impl" onchange="compile()">
-			<option value='{"lazyThenables":true}'>Pure ES5 (lazy)</option>
-			<option selected value='{}'>Pure ES5 (eager)</option>
-			<option value='{"promises":true}'>Use Promises</option>
-		</select> 
+			id="impl" onchange="setMode()">
+			<option value='lazyThenables'>Pure ES5 (lazy)</option>
+			<option value='es5'>Pure ES5 (eager)</option>
+			<option value='promises'>Use Promises</option>
+		</select>
 		<span>Promise type:</span><select id="promise" onchange="setPromiseType()" disabled="true"></select>
-		<span><input onchange="compile()" type="checkbox" id="noRuntime" checked>Use runtime</span>
+		<span><input onchange="compile()" type="checkbox" id="useRuntime" checked>Use runtime</span>
 		<button onclick="pretty()">Pretty</button>
 		<button onclick="compile()">Compile</button>
 		<button onclick="execute()">Run compiled JavaScript</button>
@@ -211,16 +211,12 @@ window.onload = function() {
 	    promiseTypes.Zousan = Function.$asyncbind.EagerThenable;
     } else {
 	    promiseTypes['nodent.EagerThenable'] = Function.$asyncbind.EagerThenable;
-	    ui.noRuntime.parentNode.style.display = 'none'
+	    ui.useRuntime.parentNode.style.display = 'none'
 	}
 
     if (typeof Promise !=="undefined") {
         promiseTypes.native = Promise ;
     }
-
-    // Double decode as NPMJS makes a mess of URLs in links
-    if (window.location.hash)
-        source.value = (decodeURIComponent(decodeURIComponent(window.location.hash.substring(1))));
 
     function loadScript(src) {
         return (function($return, $error) {
@@ -245,7 +241,7 @@ window.onload = function() {
         try {
             temp = eval("function *gen(){}");
             option = document.createElement("option");
-            option.value = '{"generators":true}';
+            option.value = 'generators';
             option.textContent = "Use Promises/Generators";
             ui.impl.appendChild(option);
         } catch (ex) { }
@@ -253,7 +249,7 @@ window.onload = function() {
         try {
             temp = eval("async function a(){}");
             option = document.createElement("option");
-            option.value = '{"engine":true}';
+            option.value = 'engine';
             option.textContent = "Use JS async/await engine";
             ui.impl.appendChild(option);
         } catch (ex) { }
@@ -264,30 +260,39 @@ window.onload = function() {
             option.textContent = k;
             ui.promise.appendChild(option);
         }) ;
-        http("get", "/examples")(function(examples) {
-            examples.forEach(function(fn) {
-                var option = document.createElement("option");
-                option.value = fn;
-                option.textContent = fn.split("/").pop();
-                ui.examples.appendChild(option);
+        http("get", "/examples")(
+            function(examples) {
+                examples.forEach(function(fn) {
+                    var option = document.createElement("option");
+                    option.value = fn;
+                    option.textContent = fn.split("/").pop();
+                    ui.examples.appendChild(option);
+                });
+            },
+            console.error,
+            function init() {
+                // Revive state from window.location.hash
+                readHashState();
+
+                // Apply that state & compile
+                setPromiseType();
+                setMode();
             });
-        }, console.error);
-        setPromiseType();
-        compile() ;
     }
 }
 
 function http(method, url, data) {
-    return function(resolve, reject) {
+    return function(resolve, reject, after) {
         var xhr = new XMLHttpRequest();
         xhr.onload = function() {
             try {
                 if (xhr.status >= 400)
                     throw new Error(xhr.responseText);
-                return resolve(JSON.parse(xhr.responseText));
+                resolve(JSON.parse(xhr.responseText));
             } catch (ex) {
-                return reject(ex);
+                reject(ex);
             }
+            after && after();
         }
         xhr.open(method, url, true);
         xhr.send(data);
@@ -295,26 +300,64 @@ function http(method, url, data) {
 }
 
 function setPromiseType() {
-    var type = ui.promise[ui.promise.selectedIndex].value ;
+    var type = ui.promise.value ;
     window.Promise = promiseTypes[type] ;
     var description = "window.Promise = "+window.Promise.toString().split("{")[0].replace(/\s+/g," ")+"\t// "+type ;
     if (window.Promise.version)
-        description += " (v"+window.Promise.version+")" ; 
-    else 
-        description += " (no version)" ; 
+        description += " (v"+window.Promise.version+")" ;
+    else
+        description += " (no version)" ;
     console.log(description)
+    writeHashState();
+}
+
+function setMode() {
+    var mode = ui.impl.value;
+    ui.promise.disabled = ui.impl.selectedIndex < 2;
+    compile();
+}
+
+function setExample() {
+    var ref = ui.examples.value;
+    if (ref) {
+        http("GET", ref)(function(code) {
+            source.value = (code);
+        });
+    }
+}
+
+function readHashState() {
+    if (!window.location.hash) {
+        // If no state, load the first example.
+        ui.examples.value = ui.examples[1].value;
+        setExample();
+        return;
+    }
+
+    // Double decode as NPMJS makes a mess of URLs in links
+    var hashData = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1)));
+    try {
+        hashData = JSON.parse(hashData);
+        source.value = hashData.src;
+        setOpts(hashData.opts);
+    } catch (e) {
+        // Support old format - just raw text
+        source.value = hashData;
+    }
+}
+
+function writeHashState() {
+    var src = source.value;
+    window.location.hash = encodeURIComponent(JSON.stringify({src: src, opts: getOpts()}));
 }
 
 function compile() {
-    ui.promise.disabled = ui.impl.selectedIndex < 2 ;
+    writeHashState();
     var src = source.value;
     if (!src)
         return;
-    window.location.hash = encodeURIComponent(src);
 
-    var opts = JSON.parse(ui.impl[ui.impl.selectedIndex].value);
-    opts.noRuntime = !ui.noRuntime.checked ;
-    http("POST", "/go/"+JSON.stringify(opts), src)(function(resp) {
+    http("POST", "/go/"+JSON.stringify(getOpts()), src)(function(resp) {
         ui.compileError.innerText = "";
         ui.compileError.style.visibility = 'hidden';
 
@@ -336,15 +379,28 @@ function pretty() {
     var src = source.value;
     if (!src)
         return;
-    window.location.hash = encodeURIComponent(src);
 
-    var opts = JSON.parse(ui.impl[ui.impl.selectedIndex].value);
-    opts.noRuntime = !ui.noRuntime.checked ;
-    http("POST", "/go/"+JSON.stringify(opts), src)(function(resp) {
+    http("POST", "/go/"+JSON.stringify(getOpts()), src)(function(resp) {
         source.value = resp.pretty;
+        writeHashState();
         if (resp.message)
             console.error(resp.message);
     }, console.error);
+}
+
+function getOpts() {
+    // See options under https://github.com/MatAtBread/nodent#use-within-a-browser
+    return {
+        mode: ui.impl.value,
+        noRuntime: !ui.useRuntime.checked,
+        promiseType: ui.promise.value
+    };
+}
+
+function setOpts(opts) {
+    ui.useRuntime.checked = !opts.noRuntime;
+    ui.promise.value = opts.promiseType || 'Zousan';
+    ui.impl.value = opts.mode || 'es5';
 }
 
 function execute() {
@@ -352,15 +408,6 @@ function execute() {
         (new Function(es5.value))();
     } catch (ex) {
         $error(ex);
-    }
-}
-
-function loadExample() {
-    var ref = ui.examples[ui.examples.selectedIndex].value;
-    if (ref) {
-        http("GET", ref)(function(code) {
-            source.value = (code);
-        });
     }
 }
 

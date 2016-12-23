@@ -1,3 +1,4 @@
+'use strict';
 var nodent = require('nodent') ;
 nodent = nodent({log:function(){ compileLog.push(arguments) }}) ;
 var http = require('http') ;
@@ -8,6 +9,16 @@ function sendError(req,res){
 	res.statusCode = 404 ;
 	res.setHeader("Content-type","text/plain") ;
 	res.end("Not found: "+req.url) ;
+}
+
+function parseOpts(paths) {
+	var opts = JSON.parse(decodeURIComponent(paths[2]) || "{}");
+	if (opts.mode && opts.mode !== 'es5') {
+		opts[opts.mode] = true
+	}
+	delete opts.mode;
+	delete opts.promiseType;
+	return opts;
 }
 
 var clients = [];
@@ -49,7 +60,7 @@ function handle(req,res) {
         break ;
 
     case 'go':
-		var options = JSON.parse(decodeURIComponent(paths[2]) || "{}") ;
+		var options = parseOpts(paths);
 		res.body = "" ;
 		req.on('data',function(data){ res.body += data.toString() }) ;
 		req.on('end',function(){
