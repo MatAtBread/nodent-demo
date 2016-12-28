@@ -152,6 +152,7 @@ version {
 		</select>
 		<span>Promise type:</span><select id="promise" onchange="setPromiseType()" disabled="true"></select>
 		<span><input onchange="compile()" type="checkbox" id="useRuntime" checked>Use runtime</span>
+		<span><input onchange="compile()" type="checkbox" id="es6target">es6target</span>
 		<button onclick="pretty()">Pretty</button>
 		<button onclick="compile()">Compile</button>
 		<button onclick="execute()">Run compiled JavaScript</button>
@@ -335,20 +336,16 @@ function readHashState() {
     }
 
     // Double decode as NPMJS makes a mess of URLs in links
-    var hashData = decodeURIComponent(decodeURIComponent(window.location.hash.substring(1)));
-    try {
-        hashData = JSON.parse(hashData);
-        source.value = hashData.src;
-        setOpts(hashData.opts);
-    } catch (e) {
-        // Support old format - just raw text
-        source.value = hashData;
-    }
+    var hashData = window.location.hash.substring(1).split("~options~");
+    if (hashData[0])
+        source.value = decodeURIComponent(decodeURIComponent(hashData[0])) ;
+    if (hashData[1])
+        setOpts(JSON.parse(decodeURIComponent(decodeURIComponent(hashData[1]))));
 }
 
 function writeHashState() {
     var src = source.value;
-    window.location.hash = encodeURIComponent(JSON.stringify({src: src, opts: getOpts()}));
+    window.location.hash = encodeURIComponent(src)+"~options~"+encodeURIComponent(JSON.stringify(getOpts()));
 }
 
 function compile() {
@@ -394,11 +391,13 @@ function getOpts() {
     return {
         mode: ui.impl.value,
         noRuntime: !ui.useRuntime.checked,
+        es6target: ui.es6target.checked,
         promiseType: ui.promise.value
     };
 }
 
 function setOpts(opts) {
+    ui.es6target.checked = opts.es6target;
     ui.useRuntime.checked = !opts.noRuntime;
     ui.promise.value = opts.promiseType || 'Zousan';
     ui.impl.value = opts.mode || 'es5';
