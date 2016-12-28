@@ -3,6 +3,7 @@ var nodent = require('nodent') ;
 nodent = nodent({log:function(){ compileLog.push(arguments) }}) ;
 var http = require('http') ;
 var fs = require('fs') ;
+var nodeStatic = require('node-static') ;
 var compileLog ;
 
 function sendError(req,res){
@@ -20,6 +21,8 @@ function parseOpts(paths) {
 	delete opts.promiseType;
 	return opts;
 }
+
+var file = new nodeStatic.Server('./www');
 
 var clients = [];
 function handle(req,res) {
@@ -85,31 +88,26 @@ function handle(req,res) {
 		break ;
 
 	default:
-		if (url[0].indexOf("..")<0) {
-			res.statusCode = 200 ;
-			var fileName = 'www/'+url[0] ;
-			fs.stat(fileName,function(err,stat){
-				if (err) return sendError(req,res) ;
-				if (stat.isFile()) {
-					fs.readFile(fileName,function(err,data){
-						if (err) return sendError(req,res) ;
-						res.setHeader("Content-type","application/json") ;
-						res.end(JSON.stringify(data.toString())) ;
-					}) ;
-				} else if (stat.isDirectory()) {
-					fs.readdir(fileName,function(err,data){
-						if (err) return sendError(req,res) ;
-						res.setHeader("Content-type","application/json") ;
-						res.end(JSON.stringify(data.map(function(f){ return url[0]+"/"+f}))) ;
-					}) ;
-				} else {
-					sendError(req,res) ;
-				}
-			}) ;
-		} else {
-			sendError(req,res) ;
+		if (/\.\./.test(url[0])) {
+			return sendError(req,res) ;
 		}
-		break;
+		var fileName = 'www/' + url[0].replace(/^\//, '') ;
+		fs.stat(fileName,function(err,stat){
+			if (err) return sendError(req,res) ;
+			// List directories
+			if (stat.isDirectory()) {
+				fs.readdir(fileName,function(err,data){
+					if (err) return sendError(req,res) ;
+					res.statusCode = 200 ;
+					res.setHeader("Content-type","application/json") ;
+					res.end(JSON.stringify(data.map(function(f){ return url[0]+"/"+f}))) ;
+				}) ;
+			}
+			// Otherwise, fallback to node-static
+			else {
+				return file.serve(req, res) ;
+			}
+		}) ;
 	}
 } ;
 

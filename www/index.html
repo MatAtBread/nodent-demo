@@ -32,6 +32,8 @@ pre div:last-child {
 	border-radius: 0.5em;
 	width: 90%;
 	tab-size: 8;
+    white-space: pre-wrap;
+    overflow: hidden;
 }
 
 #options>* {
@@ -55,28 +57,15 @@ pre div:last-child {
 }
 
 .banner {
-	position: fixed;
-	right: -10.5em;
-	top: -6em;
-	transform: rotate(45deg);
-	width: 10em;
-	z-index: 7;
-	font-size: 0.9em;
-	text-align: center;
-	background-color: rgba(180, 60, 60, 0.6);
-	padding: 7em 5em 0.5em 5em;
-	color: white;
-	transition: top 0.3s, right 0.3s;
-	animation: bump 0.6s;
+    float: right;
 }
 
-.banner:hover {
-	top: -2em;
-	right: -7.5em;
+.banner a {
+    text-decoration: none;
 }
 
-.banner a:visited, a:hover {
-	color: yellow;
+.banner svg {
+
 }
 
 #es5, #source {
@@ -125,12 +114,16 @@ version {
 </style>
 </head>
 <body>
-	<h2>Nodent ES7 to ES5/6 compiler</h2>
-	<version>v<@version@></version>
 	<div class="banner">
-		Install me from <a href="https://www.npmjs.com/package/nodent">npmjs</a>
-		Fork me on <a href="https://github.com/MatAtBread/nodent">github</a>
+		<a href="https://www.npmjs.com/package/nodent">
+            <img src="/img/npm.svg" />
+        </a>
+        <a href="https://github.com/MatAtBread/nodent">
+            <img src="/img/octocat.svg" />
+        </a>
 	</div>
+    <h2>Nodent ES7 to ES5/6 compiler</h2>
+    <version>v<@version@></version>
 
 	<div id='code'>
 		<block>
@@ -150,9 +143,18 @@ version {
 			<option value='es5'>Pure ES5 (eager)</option>
 			<option value='promises'>Use Promises</option>
 		</select>
-		<span>Promise type:</span><select id="promise" onchange="setPromiseType()" disabled="true"></select>
-		<span><input onchange="compile()" type="checkbox" id="useRuntime" checked>Use runtime</span>
-		<span><input onchange="compile()" type="checkbox" id="es6target">es6target</span>
+		<span id="promiseWrapper">
+            <label for="promise">Promise type:</label>
+            <select id="promise" onchange="setPromiseType()"></select>
+        </span>
+		<span id="useRuntimeWrapper">
+            <input onchange="compile()" type="checkbox" id="useRuntime" checked>
+            <label for="useRuntime">Use runtime</label>
+        </span>
+		<span id="es6targetWrapper">
+            <input onchange="compile()" type="checkbox" id="es6target">
+            <label for="es6target">Target ES6</label>
+        </span>
 		<button onclick="pretty()">Pretty</button>
 		<button onclick="compile()">Compile</button>
 		<button onclick="execute()">Run compiled JavaScript</button>
@@ -314,7 +316,7 @@ function setPromiseType() {
 
 function setMode() {
     var mode = ui.impl.value;
-    ui.promise.disabled = ui.impl.selectedIndex < 2;
+    ui.promiseWrapper.style.display = ui.impl.selectedIndex < 2 ? 'none' : '';
     compile();
 }
 
@@ -365,7 +367,7 @@ function compile() {
             console.error(resp.message);
     }, function(ex) {
         clearLog();
-        ui.compileError.innerText = ex;
+        ui.compileError.innerText = String(ex).trim();
         ui.compileError.style.visibility = 'visible';
         ui.compileError.onclick = function() {
             ui.compileError.style.visibility = 'hidden';
