@@ -361,7 +361,8 @@ function compile() {
         ui.compileError.innerText = "";
         ui.compileError.style.visibility = 'hidden';
 
-        es5.value = resp.compiled;
+        // Set the compiled output, but remove the source map output & extra newlines
+        es5.value = resp.compiled.replace(/\/\/#.*/, '').replace(/\n+$/, '');
         sm = new window.sourceMap.SourceMapConsumer(resp.map);
         if (resp.message)
             console.error(resp.message);
