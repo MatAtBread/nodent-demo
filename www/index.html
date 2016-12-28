@@ -2,11 +2,47 @@
 <head>
 <title>Nodent ES7 to ES5 compiler</title>
 <style>
-block {
-	width: 49%;
-	display: inline-block;
-	vertical-align: top;
-	padding-bottom: 1em;
+* {
+    box-sizing: border-box;
+}
+body {
+    height: 100%;
+    font-family: sans-serif;
+    overflow-x: hidden;
+    margin: 0;
+}
+
+body > .container {
+    height: 100vh;
+    padding: 8px;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.flex-container {
+    display: flex;
+}
+
+.flex-container-column {
+    flex-direction: column;
+}
+
+.flex-container > header {
+    flex: 0 0 auto;
+}
+
+.flex-container > content {
+    flex: 1 0 auto;
+}
+
+.flex-container > footer {
+    flex: 0 0 auto;
+}
+
+.flex-container > header h2 {
+    margin: 0;
 }
 
 pre {
@@ -36,7 +72,7 @@ pre div:last-child {
     overflow: hidden;
 }
 
-#options>* {
+#options {
 	margin-right: 1em;
 	margin-top: .5em;
 }
@@ -50,12 +86,6 @@ pre div:last-child {
 	color: #733 !important;
 }
 
-@keyframes bump {
-        0% { top: -6em; right: -10.5em; }
-        0% { top: -2em; right: -7.5em; }
-	100% { top: -6em; right: -10.5em; }
-}
-
 .banner {
     float: right;
 }
@@ -64,104 +94,93 @@ pre div:last-child {
     text-decoration: none;
 }
 
-.banner svg {
-
+#code > section {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
 }
 
-#es5, #source {
-	width: 100%;
-	height: 100%;
-	border: 1px solid #ccc;
+#code h4 {
+    margin: 0;
 }
 
-body {
-	height: 100%;
-	font-family: sans-serif;
-	overflow-x: hidden;
-}
-
-#code, #options, #log {
-	position: absolute;
-	width: 100%;
-}
-
-#code {
-	top: 2.5em;
-	bottom: 11.5em;
-}
-
-#options {
-	bottom: 8.5em;
-	height: 1.5em;
+.editor {
+    border: 1px solid #ccc;
+    flex-grow: 1;
 }
 
 #log {
-	bottom: 0;
-	margin-top: 0;
+	margin: 0;
 	height: 8.5em;
-	width: 98%;
 	overflow-x: hidden;
 }
 
 version {
-	font-size: 0.8em;
-	position: absolute;
-	right: 1em;
-	bottom: 11em;
+	font-size: 0.8rem;
+    font-weight: normal;
 	color: rgb(160, 160, 160);
 }
 
 </style>
 </head>
 <body>
-	<div class="banner">
-		<a href="https://www.npmjs.com/package/nodent">
-            <img src="/img/npm.svg" />
-        </a>
-        <a href="https://github.com/MatAtBread/nodent">
-            <img src="/img/octocat.svg" />
-        </a>
-	</div>
-    <h2>Nodent ES7 to ES5/6 compiler</h2>
-    <version>v<@version@></version>
+    <div class="container flex-container flex-container-column full-width">
+        <header>
+        	<div class="banner">
+        		<a href="https://www.npmjs.com/package/nodent">
+                    <img src="/img/npm.svg" />
+                </a>
+                <a href="https://github.com/MatAtBread/nodent">
+                    <img src="/img/octocat.svg" />
+                </a>
+        	</div>
+            <h2>
+                Nodent ES7 to ES5/6 compiler
+                <version>v<@version@></version>
+            </h2>
 
-	<div id='code'>
-		<block>
-		<div>ES7 source</div>
-		<div id="source">//ES7 code</div>
-		</block>
-		<block>
-		<div>Compiled JS</div>
-		<div id="es5"></div>
-		</block>
-	</div>
-	<div id="options">
-		<select id="examples" onchange="setExample()"><option
-				value="">Enter code above or select example</option></select> <select
-			id="impl" onchange="setMode()">
-			<option value='lazyThenables'>Pure ES5 (lazy)</option>
-			<option value='es5'>Pure ES5 (eager)</option>
-			<option value='promises'>Use Promises</option>
-		</select>
-		<span id="promiseWrapper">
-            <label for="promise">Promise type:</label>
-            <select id="promise" onchange="setPromiseType()"></select>
-        </span>
-		<span id="useRuntimeWrapper">
-            <input onchange="compile()" type="checkbox" id="useRuntime" checked>
-            <label for="useRuntime">Use runtime</label>
-        </span>
-		<span id="es6targetWrapper">
-            <input onchange="compile()" type="checkbox" id="es6target">
-            <label for="es6target">Target ES6</label>
-        </span>
-		<button onclick="pretty()">Pretty</button>
-		<button onclick="compile()">Compile</button>
-		<button onclick="execute()">Run compiled JavaScript</button>
-		<button onclick="clearLog()">Clear log</button>
-	</div>
-	<pre id="log"></pre>
-	<pre id="compileError"></pre>
+        </header>
+
+    	<content id="code" class="flex-container full-width">
+    		<section>
+        		<h4>ES7 source</h4>
+        		<div id="source" class="editor">//ES7 code</div>
+    		</section>
+    		<section>
+        		<h4>Compiled JS</h4>
+        		<div id="es5" class="editor"></div>
+    		</section>
+    	</content>
+        <footer>
+        	<div id="options">
+        		<select id="examples" onchange="setExample()"><option
+        				value="">Enter code above or select example</option></select> <select
+        			id="impl" onchange="setMode()">
+        			<option value="lazyThenables">Pure ES5 (lazy)</option>
+        			<option value="es5">Pure ES5 (eager)</option>
+        			<option value="promises">Use Promises</option>
+        		</select>
+        		<span id="promiseWrapper">
+                    <label for="promise">Promise type:</label>
+                    <select id="promise" onchange="setPromiseType()"></select>
+                </span>
+        		<span id="useRuntimeWrapper">
+                    <input onchange="compile()" type="checkbox" id="useRuntime" checked>
+                    <label for="useRuntime">Use runtime</label>
+                </span>
+        		<span id="es6targetWrapper">
+                    <input onchange="compile()" type="checkbox" id="es6target">
+                    <label for="es6target">Target ES6</label>
+                </span>
+        		<button onclick="pretty()">Pretty</button>
+        		<button onclick="compile()">Compile</button>
+        		<button onclick="execute()">Run compiled JavaScript</button>
+        		<button onclick="clearLog()">Clear log</button>
+        	</div>
+    	   <pre id="log"></pre>
+        </footer>
+	   <pre id="compileError"></pre>
+    </div>
 </body>
 
 <script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js"
