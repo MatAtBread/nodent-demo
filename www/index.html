@@ -149,7 +149,7 @@ version {
 			<option value='{"lazyThenables":true}'>Pure ES5 (lazy)</option>
 			<option selected value='{}'>Pure ES5 (eager)</option>
 			<option value='{"promises":true}'>Use Promises</option>
-		</select> 
+		</select>
 		<span>Promise type:</span><select id="promise" onchange="setPromiseType()" disabled="true"></select>
 		<span><input onchange="compile()" type="checkbox" id="noRuntime" checked>Use runtime</span>
 		<button onclick="pretty()">Pretty</button>
@@ -299,9 +299,9 @@ function setPromiseType() {
     window.Promise = promiseTypes[type] ;
     var description = "window.Promise = "+window.Promise.toString().split("{")[0].replace(/\s+/g," ")+"\t// "+type ;
     if (window.Promise.version)
-        description += " (v"+window.Promise.version+")" ; 
-    else 
-        description += " (no version)" ; 
+        description += " (v"+window.Promise.version+")" ;
+    else
+        description += " (no version)" ;
     console.log(description)
 }
 
@@ -318,7 +318,8 @@ function compile() {
         ui.compileError.innerText = "";
         ui.compileError.style.visibility = 'hidden';
 
-        es5.value = resp.compiled;
+        // Set the compiled output, but remove the source map output & extra newlines
+        es5.value = resp.compiled.replace(/\/\/#.*/, '').replace(/\n+$/, '');
         sm = new window.sourceMap.SourceMapConsumer(resp.map);
         if (resp.message)
             console.error(resp.message);
