@@ -45,49 +45,55 @@ body > .container {
     margin: 0;
 }
 
+.pull-right {
+    float: right;
+}
+
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
 pre {
-	border: 1px solid #888;
-	overflow-x: scroll;
+    border: 1px solid #888;
+    overflow-x: scroll;
 }
 
 pre div:last-child {
-	background-color: #eef;
-	color: #337;
+    background-color: #eef;
+    color: #337;
 }
 
 #compileError {
-	visibility: hidden;
-	position: absolute;
-	left: 4em;
-	bottom: 14em;
-	border: 2px solid red;
-	z-index: 9;
-	background-color: rgba(128, 20, 20, 0.7);
-	color: white;
-	padding: 1em;
-	border-radius: 0.5em;
-	width: 90%;
-	tab-size: 8;
+    visibility: hidden;
+    position: absolute;
+    left: 4em;
+    bottom: 14em;
+    border: 2px solid red;
+    z-index: 9;
+    background-color: rgba(128, 20, 20, 0.7);
+    color: white;
+    padding: 1em;
+    border-radius: 0.5em;
+    width: 90%;
+    tab-size: 8;
     white-space: pre-wrap;
     overflow: hidden;
 }
 
 #options {
-	margin-right: 1em;
-	margin-top: .5em;
+    padding: .5em 0;
+    font-size: 85%;
 }
 
-#options>span {
-   font-size: 85%;
+#options > * {
+    margin-right: .5em;
 }
 
 .errorlog {
-	background-color: #fee !important;
-	color: #733 !important;
-}
-
-.banner {
-    float: right;
+    background-color: #fee !important;
+    color: #733 !important;
 }
 
 .banner a {
@@ -100,25 +106,27 @@ pre div:last-child {
     flex-direction: column;
 }
 
-#code h4 {
-    margin: 0;
-}
-
 .editor {
     border: 1px solid #ccc;
     flex-grow: 1;
 }
 
 #log {
-	margin: 0;
-	height: 8.5em;
-	overflow-x: hidden;
+    margin: 0;
+    height: 8.5em;
+    overflow-x: auto;
+}
+
+#clear-log {
+    position: absolute;
+    bottom: 1em;
+    right: 1em;
 }
 
 version {
-	font-size: 0.8rem;
+    font-size: 0.8rem;
     font-weight: normal;
-	color: rgb(160, 160, 160);
+    color: rgb(160, 160, 160);
 }
 
 </style>
@@ -126,14 +134,14 @@ version {
 <body>
     <div class="container flex-container flex-container-column full-width">
         <header>
-        	<div class="banner">
-        		<a href="https://www.npmjs.com/package/nodent">
+            <div class="banner pull-right">
+                <a href="https://www.npmjs.com/package/nodent">
                     <img src="/img/npm.svg" />
                 </a>
                 <a href="https://github.com/MatAtBread/nodent">
                     <img src="/img/octocat.svg" />
                 </a>
-        	</div>
+            </div>
             <h2>
                 Nodent ES7 to ES5/6 compiler
                 <version>v<@version@></version>
@@ -141,50 +149,65 @@ version {
 
         </header>
 
-    	<content id="code" class="flex-container full-width">
-    		<section>
-        		<h4>ES7 source</h4>
-        		<div id="source" class="editor">//ES7 code</div>
-    		</section>
-    		<section>
-        		<h4>Compiled JS</h4>
-        		<div id="es5" class="editor"></div>
-    		</section>
-    	</content>
+        <content id="code" class="flex-container full-width">
+            <section>
+                <heading>ES7 source</heading>
+                <div id="source" class="editor">//ES7 code</div>
+            </section>
+            <section>
+                <heading>Compiled JS</heading>
+                <div id="es5" class="editor"></div>
+            </section>
+        </content>
         <footer>
-        	<div id="options">
-        		<select id="examples" onchange="setExample()"><option
-        				value="">Enter code above or select example</option></select> <select
-        			id="impl" onchange="setMode()">
-        			<option value="lazyThenables">Pure ES5 (lazy)</option>
-        			<option value="es5">Pure ES5 (eager)</option>
-        			<option value="promises">Use Promises</option>
-        		</select>
-        		<span id="promiseWrapper">
-                    <label for="promise">Promise type:</label>
-                    <select id="promise" onchange="setPromiseType()"></select>
+            <div id="options" class="clearfix">
+                <span id="examplesWrapper">
+                    <select id="examples" onchange="setExample()">
+                        <option value="">Enter code above or select example</option>
+                    </select>
                 </span>
-        		<span id="useRuntimeWrapper">
+                <span id="implWrapper">
+                    <select id="impl" onchange="setMode();compile()">
+                        <option value="lazyThenables">Pure ES5 (lazy)</option>
+                        <option value="es5">Pure ES5 (eager)</option>
+                        <option value="promises">Use Promises</option>
+                    </select>
+                </span>
+                <span id="promiseWrapper">
+                    <label for="promise">Promise type:</label>
+                    <select id="promise" onchange="setPromiseType();compile()"></select>
+                </span>
+                <span id="useRuntimeWrapper">
                     <input onchange="compile()" type="checkbox" id="useRuntime" checked>
                     <label for="useRuntime">Use runtime</label>
                 </span>
-        		<span id="es6targetWrapper">
+                <span id="es6targetWrapper">
                     <input onchange="compile()" type="checkbox" id="es6target">
                     <label for="es6target">Target ES6</label>
                 </span>
-        		<button onclick="pretty()">Pretty</button>
-        		<button onclick="compile()">Compile</button>
-        		<button onclick="execute()">Run compiled JavaScript</button>
-        		<button onclick="clearLog()">Clear log</button>
-        	</div>
-    	   <pre id="log"></pre>
+                <span id="wrapAwaitWrapper">
+                    <input onchange="compile()" type="checkbox" id="wrapAwait">
+                    <label for="wrapAwait">Wrap Await</label>
+                </span>
+                <span id="actions" class="pull-right">
+                    <span id="specWrapper" title="This will set no runtime, wrap await, and promises mode.">
+                        <input onchange="setSpec();compile()" type="checkbox" id="spec">
+                        <label for="spec">Spec-Compliant</label>
+                    </span>
+                    <button onclick="pretty()">Pretty</button>
+                    <button onclick="compile()">Compile</button>
+                    <button onclick="execute()">Run compiled JavaScript</button>
+                </span>
+            </div>
+            <pre id="log"></pre>
+            <button id="clear-log" onclick="clearLog()">Clear log</button>
         </footer>
-	   <pre id="compileError"></pre>
+       <pre id="compileError"></pre>
     </div>
 </body>
 
 <script src="http://ajaxorg.github.io/ace-builds/src-noconflict/ace.js"
-	type="text/javascript" charset="utf-8"></script>
+    type="text/javascript" charset="utf-8"></script>
 <script src="source-map.js"></script>
 <script src="setImmediate.js"></script>
 <script>
@@ -230,11 +253,11 @@ window.onload = function() {
     });
 
     if (parseInt(nodentVersion) >= 3) {
-	    promiseTypes.Zousan = Function.$asyncbind.EagerThenable;
+        promiseTypes.Zousan = Function.$asyncbind.EagerThenable;
     } else {
-	    promiseTypes['nodent.EagerThenable'] = Function.$asyncbind.EagerThenable;
-	    ui.useRuntime.parentNode.style.display = 'none'
-	}
+        promiseTypes['nodent.EagerThenable'] = Function.$asyncbind.EagerThenable;
+        ui.useRuntime.parentNode.style.display = 'none'
+    }
 
     if (typeof Promise !=="undefined") {
         promiseTypes.native = Promise ;
@@ -299,6 +322,8 @@ window.onload = function() {
                 // Apply that state & compile
                 setPromiseType();
                 setMode();
+                setSpec();
+                compile();
             });
     }
 }
@@ -310,9 +335,14 @@ function http(method, url, data) {
             try {
                 if (xhr.status >= 400)
                     throw new Error(xhr.responseText);
-                resolve(JSON.parse(xhr.responseText));
+                if (xhr.responseText[0] === '[' || xhr.responseText[0] === '{') {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    resolve(xhr.responseText);
+                }
             } catch (ex) {
-                reject(ex);
+                reject && reject(ex);
+                console.error(ex);
             }
             after && after();
         }
@@ -336,7 +366,19 @@ function setPromiseType() {
 function setMode() {
     var mode = ui.impl.value;
     ui.promiseWrapper.style.display = ui.impl.selectedIndex < 2 ? 'none' : '';
-    compile();
+}
+
+function setSpec() {
+    var isSpec = ui.spec.checked;
+    if (isSpec) {
+        ui.mode = 'promises';
+        ui.promise.value = 'Zousan';
+        ui.wrapAwait.value = true;
+        ui.useRuntime.value = false;
+    }
+    ['promise', 'wrapAwait', 'useRuntime', 'impl'].forEach(function(k) {
+        ui[k + 'Wrapper'].style.display = isSpec ? 'none' : 'inline';
+    })
 }
 
 function setExample() {
@@ -411,17 +453,21 @@ function getOpts() {
     // See options under https://github.com/MatAtBread/nodent#use-within-a-browser
     return {
         mode: ui.impl.value,
+        promiseType: ui.promise.value,
         noRuntime: !ui.useRuntime.checked,
         es6target: ui.es6target.checked,
-        promiseType: ui.promise.value
+        wrapAwait: ui.wrapAwait.checked,
+        spec: ui.spec.checked
     };
 }
 
 function setOpts(opts) {
-    ui.es6target.checked = opts.es6target;
-    ui.useRuntime.checked = !opts.noRuntime;
     ui.promise.value = opts.promiseType || 'Zousan';
     ui.impl.value = opts.mode || 'es5';
+    ui.useRuntime.checked = !opts.noRuntime;
+    ui.es6target.checked = opts.es6target;
+    ui.wrapAwait.checked = opts.wrapAwait;
+    ui.spec.checked = opts.spec;
 }
 
 function execute() {
@@ -433,42 +479,42 @@ function execute() {
 }
 
 var superProto = {
-	value:{
-		get:function(){ return this.getValue() },
-		set:function(text) {
-			this.setValue(text);
-			this.clearSelection();
-		}
-	}
+    value:{
+        get:function(){ return this.getValue() },
+        set:function(text) {
+            this.setValue(text);
+            this.clearSelection();
+        }
+    }
 };
 function extEdit(id) {
-	var e = ace.edit(id) ;
-	e.setShowPrintMargin(false);
-	return Object.create(e,superProto) ;
+    var e = ace.edit(id) ;
+    e.setShowPrintMargin(false);
+    return Object.create(e,superProto) ;
 }
 var es5 = extEdit("es5");
 var source = extEdit("source");
 
 function syncOutput() {
-	if (sm && source.$isFocused) {
-		var c = source.selection.getCursor();
-		var g = sm.generatedPositionFor({source:'source.js(original)',line:c.row+1,column:c.column}) ;
-		if (g.line){
-			es5.selection.clearSelection() ;
-			es5.selection.moveCursorTo(g.line-1,g.column) ;
-		}
-	}
+    if (sm && source.$isFocused) {
+        var c = source.selection.getCursor();
+        var g = sm.generatedPositionFor({source:'source.js(original)',line:c.row+1,column:c.column}) ;
+        if (g.line){
+            es5.selection.clearSelection() ;
+            es5.selection.moveCursorTo(g.line-1,g.column) ;
+        }
+    }
 }
 
 function syncSource() {
-	if (sm  && es5.$isFocused) {
-		var c = es5.selection.getCursor();
-		var g = sm.originalPositionFor({line:c.row+1,column:c.column}) ;
-		if (g.line) {
-			source.selection.clearSelection() ;
-			source.selection.moveCursorTo(g.line-1,g.column) ;
-		}
-	}
+    if (sm  && es5.$isFocused) {
+        var c = es5.selection.getCursor();
+        var g = sm.originalPositionFor({line:c.row+1,column:c.column}) ;
+        if (g.line) {
+            source.selection.clearSelection() ;
+            source.selection.moveCursorTo(g.line-1,g.column) ;
+        }
+    }
 }
 
 source.getSession().selection.on('changeCursor',syncOutput);

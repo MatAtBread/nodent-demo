@@ -19,6 +19,7 @@ function parseOpts(paths) {
 	}
 	delete opts.mode;
 	delete opts.promiseType;
+	delete opts.spec; // this is technically a fast-async option
 	return opts;
 }
 
