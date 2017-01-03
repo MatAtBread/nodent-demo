@@ -1,5 +1,10 @@
 async function tellYouLater(sayWhat) {
     // Do something asynchronous, such as DB access, web access, etc.
-    const result = await somethingAsync(sayWhat);
-    return result;
+    return "I said: "+sayWhat;
 }
+
+async function test() {
+    return tellYouLater("I'll tell you later") ;
+}
+
+test().then(log,$error);
