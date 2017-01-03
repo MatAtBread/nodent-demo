@@ -133,6 +133,11 @@ version {
     color: rgb(160, 160, 160);
 }
 
+.optionGroup {
+	padding: 4px;
+	background: #eed;
+}
+
 </style>
 </head>
 <body>
@@ -170,29 +175,31 @@ version {
         </content>
         <footer>
             <div id="options" class="clearfix">
-                <span id="promiseWrapper">
-                    <label for="promise">Browser Promise type:</label>
-                    <select id="promise" onchange="setPromiseType();compile()"></select>
-                </span>
-                <span>Compiler Options:</span>
-                <span id="implWrapper">
-                    <select id="impl" onchange="compile()">
-                        <option value="lazyThenables">Pure ES5 (lazy)</option>
-                        <option value="es5">Pure ES5 (eager)</option>
-                        <option value="promises">Use Promises</option>
-                    </select>
-                </span>
-                <span id="useRuntimeWrapper">
-                    <input onchange="compile()" type="checkbox" id="useRuntime" checked>
-                    <label for="useRuntime">Use runtime</label>
-                </span>
-                <span id="wrapAwaitWrapper">
-                    <input onchange="compile()" type="checkbox" id="wrapAwait">
-                    <label for="wrapAwait">Wrap Await</label>
-                </span>
-                <span id="es6targetWrapper">
-                    <input onchange="compile()" type="checkbox" id="es6target">
-                    <label for="es6target">Target ES6</label>
+                <span class="optionGroup">Brower Promise Implementation:
+	                <span id="promiseWrapper">
+	                    <select id="promise" onchange="setPromiseType();compile()"></select>
+	                </span>
+	            </span>
+                <span class="optionGroup">Compiler Options:
+	                <span id="implWrapper">
+	                    <select id="impl" onchange="compile()">
+	                        <option value="lazyThenables">Pure ES5 (lazy)</option>
+	                        <option value="es5">Pure ES5 (eager)</option>
+	                        <option value="promises">Use Promises</option>
+	                    </select>
+	                </span>
+	                <span id="useRuntimeWrapper">
+	                    <input onchange="compile()" type="checkbox" id="useRuntime" checked>
+	                    <label for="useRuntime">Use runtime</label>
+	                </span>
+	                <span id="wrapAwaitWrapper">
+	                    <input onchange="compile()" type="checkbox" id="wrapAwait">
+	                    <label for="wrapAwait">Wrap Await</label>
+	                </span>
+	                <span id="es6targetWrapper">
+	                    <input onchange="compile()" type="checkbox" id="es6target">
+	                    <label for="es6target">Target ES6</label>
+	                </span>
                 </span>
                 <span id="actions" class="pull-right">
                     <span id="specWrapper" title="This will set no runtime, wrap await, and promises mode.">
