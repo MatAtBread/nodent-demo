@@ -23,7 +23,7 @@ function parseOpts(paths) {
 	return opts;
 }
 
-var file = new nodeStatic.Server('./www');
+var file = new nodeStatic.Server('./www',{ cache: 60 });
 
 var clients = [];
 function handle(req,res) {
