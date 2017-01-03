@@ -123,6 +123,10 @@ pre div:last-child {
     right: 1em;
 }
 
+#impl {
+	color: inherit;
+}
+
 version {
     font-size: 0.8rem;
     font-weight: normal;
@@ -151,7 +155,12 @@ version {
 
         <content id="code" class="flex-container full-width">
             <section>
-                <heading>ES7 source</heading>
+                <heading>ES7 source<span id="examplesWrapper">
+                    <select id="examples" onchange="setExample()">
+                        <option value="">Enter code or select example</option>
+                    </select>
+                </span>
+                </heading>
                 <div id="source" class="editor">//ES7 code</div>
             </section>
             <section>
@@ -161,33 +170,29 @@ version {
         </content>
         <footer>
             <div id="options" class="clearfix">
-                <span id="examplesWrapper">
-                    <select id="examples" onchange="setExample()">
-                        <option value="">Enter code above or select example</option>
-                    </select>
+                <span id="promiseWrapper">
+                    <label for="promise">Browser Promise type:</label>
+                    <select id="promise" onchange="setPromiseType();compile()"></select>
                 </span>
+                <span>Compiler Options:</span>
                 <span id="implWrapper">
-                    <select id="impl" onchange="setMode();compile()">
+                    <select id="impl" onchange="compile()">
                         <option value="lazyThenables">Pure ES5 (lazy)</option>
                         <option value="es5">Pure ES5 (eager)</option>
                         <option value="promises">Use Promises</option>
                     </select>
                 </span>
-                <span id="promiseWrapper">
-                    <label for="promise">Promise type:</label>
-                    <select id="promise" onchange="setPromiseType();compile()"></select>
-                </span>
                 <span id="useRuntimeWrapper">
                     <input onchange="compile()" type="checkbox" id="useRuntime" checked>
                     <label for="useRuntime">Use runtime</label>
                 </span>
-                <span id="es6targetWrapper">
-                    <input onchange="compile()" type="checkbox" id="es6target">
-                    <label for="es6target">Target ES6</label>
-                </span>
                 <span id="wrapAwaitWrapper">
                     <input onchange="compile()" type="checkbox" id="wrapAwait">
                     <label for="wrapAwait">Wrap Await</label>
+                </span>
+                <span id="es6targetWrapper">
+                    <input onchange="compile()" type="checkbox" id="es6target">
+                    <label for="es6target">Target ES6</label>
                 </span>
                 <span id="actions" class="pull-right">
                     <span id="specWrapper" title="This will set no runtime, wrap await, and promises mode.">
@@ -321,7 +326,6 @@ window.onload = function() {
 
                 // Apply that state & compile
                 setPromiseType();
-                setMode();
                 setSpec();
                 compile();
             });
@@ -363,21 +367,17 @@ function setPromiseType() {
     writeHashState();
 }
 
-function setMode() {
-    var mode = ui.impl.value;
-    ui.promiseWrapper.style.display = ui.impl.selectedIndex < 2 ? 'none' : '';
-}
-
 function setSpec() {
     var isSpec = ui.spec.checked;
     if (isSpec) {
-        ui.mode = 'promises';
-        ui.promise.value = 'Zousan';
-        ui.wrapAwait.value = true;
-        ui.useRuntime.value = false;
+		ui.impl.selectedIndex = 2 ;        
+        ui.promise.selectedIndex = 0;
+        ui.wrapAwait.checked = true;
+        ui.useRuntime.checked = false;
     }
-    ['promise', 'wrapAwait', 'useRuntime', 'impl'].forEach(function(k) {
-        ui[k + 'Wrapper'].style.display = isSpec ? 'none' : 'inline';
+    ['impl', 'wrapAwait', 'useRuntime'].forEach(function(k) {
+        ui[k + 'Wrapper'].style.color = isSpec ? '#bbb' : '';
+        ui[k].disabled = isSpec ;
     })
 }
 
