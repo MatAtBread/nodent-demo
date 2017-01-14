@@ -229,6 +229,7 @@ Function.prototype.$asyncbind = <@$asyncbind@>;
 Function.prototype.$asyncspawn = <@$asyncspawn@>;
 var nodentVersion = '<@version@>' ;
 Function.prototype.$asyncbind(function(){},true) ;
+Object.$makeThenable = Function.$asyncbind.LazyThenable.resolve;
 
 function breathe() {
     return (function($return, $error) {
@@ -377,7 +378,7 @@ function setPromiseType() {
 function setSpec() {
     var isSpec = ui.spec.checked;
     if (isSpec) {
-		ui.impl.selectedIndex = 2 ;        
+		ui.impl.selectedIndex = 2 ;
         ui.promise.selectedIndex = 0;
         ui.wrapAwait.checked = true;
         ui.useRuntime.checked = false;
