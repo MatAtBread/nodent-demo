@@ -407,11 +407,11 @@ function readHashState() {
     }
 
     // Double decode as NPMJS makes a mess of URLs in links
-    var hashData = window.location.hash.substring(1).split("~options~");
+    var hashData = decodeURIComponent(window.location.hash.substring(1)).split("~options~");
     if (hashData[0])
-        source.value = decodeURIComponent(decodeURIComponent(hashData[0])) ;
+        source.value = decodeURIComponent(hashData[0]) ;
     if (hashData[1])
-        setOpts(JSON.parse(decodeURIComponent(decodeURIComponent(hashData[1]))));
+        setOpts(JSON.parse(decodeURIComponent(hashData[1])));
 }
 
 function writeHashState() {
