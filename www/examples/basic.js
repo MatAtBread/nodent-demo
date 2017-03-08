@@ -7,4 +7,4 @@ async function test() {
     return tellYouLater("I'll tell you later") ;
 }
 
-test().then(log,$error);
+console.log(await test());
